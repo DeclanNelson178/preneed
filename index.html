@@ -626,6 +626,165 @@ tbody .rule-col { border-left: 1px solid var(--rule); }
 .block h2 { font-size: 1.0625rem; }
 .block > p { font-size: 0.8125rem; color: var(--ink-muted); max-width: 62ch; }
 
+/* ==================================================================
+   The new input controls
+   ================================================================== */
+
+/* --- a heading inside a panel --- */
+.group-head {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  border-top: 1px solid var(--rule);
+  padding-top: 16px;
+}
+.panel-body > .group-head:first-child { border-top: 0; padding-top: 0; }
+
+/* --- a row of buttons. One answer. --- */
+.choice { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 8px; }
+.choice legend { padding: 0; font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
+.choice-row { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.opt { position: relative; display: inline-flex; cursor: pointer; }
+.opt input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.opt span {
+  display: block;
+  border: 1px solid var(--rule-strong);
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-size: 0.875rem;
+  line-height: 1.3;
+  color: var(--ink-2);
+}
+.opt:hover span { border-color: var(--ink-muted); color: var(--ink); }
+.opt input:checked + span {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--surface);
+  font-weight: 600;
+}
+.opt input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* An unconfirmed shape is not a first answer. It hides one click away. */
+.choice-more > summary {
+  list-style: none;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  padding: 4px 0;
+}
+.choice-more > summary::-webkit-details-marker { display: none; }
+.choice-more > summary::before { content: '▸ '; }
+.choice-more[open] > summary::before { content: '▾ '; }
+.choice-more > summary:hover { color: var(--ink); }
+.choice-more .choice-row { padding: 4px 0; }
+
+/* --- a line the page computes. He types none of these. --- */
+.field--note { gap: 4px; }
+.readout {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 8px 11px;
+  font-variant-numeric: tabular-nums;
+}
+.readout[data-flag="check"] {
+  border-left: 3px solid var(--loss);
+  color: var(--ink);
+  background: var(--loss-wash);
+}
+
+/* --- one percent for each early year --- */
+.rows { display: grid; gap: 6px; }
+.row { display: flex; align-items: center; gap: 10px; }
+.row-year { font-size: 0.8125rem; color: var(--ink-2); width: 4.2em; flex: none; }
+.row .control { flex: 1 1 auto; max-width: 9em; }
+
+.row-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.row-button {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  background: none;
+  border: 1px dashed var(--rule-strong);
+  border-radius: 999px;
+  padding: 5px 11px;
+  cursor: pointer;
+}
+.row-button:hover { color: var(--ink); border-color: var(--ink-muted); }
+
+/* ==================================================================
+   How we made these numbers
+   ================================================================== */
+.explain-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+
+.xcols { display: grid; gap: 22px; }
+@media (min-width: 780px) {
+  .xcols { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px; }
+}
+
+.xcol { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.xcol h3 {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 0.6875rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  border-bottom: 1px solid var(--rule-strong);
+  padding-bottom: 6px;
+}
+
+.xrow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+  border-bottom: 1px solid var(--rule);
+}
+.xrows > .xrow:last-child { border-bottom: 0; }
+.xlabel { min-width: 0; }
+.xval { flex: none; font-variant-numeric: tabular-nums; color: var(--ink); }
+
+.xrow[data-kind="sub"] { color: var(--ink); }
+.xrow[data-kind="sub"] .xval { font-weight: 600; }
+.xrow[data-kind="total"],
+.xrow[data-kind="margin"] {
+  border-top: 1px solid var(--rule-strong);
+  color: var(--ink);
+  font-weight: 600;
+}
+.xrow[data-kind="margin"] .xval[data-sign="loss"] { color: var(--loss); }
+.xrow[data-kind="margin"] .xval[data-sign="gain"] { color: var(--gain); }
+
+/* Every rate in the explanation is the field that holds it. */
+.xlink {
+  font: inherit;
+  color: var(--ink);
+  background: none;
+  border: 0;
+  border-bottom: 1px dashed var(--rule-strong);
+  padding: 0;
+  cursor: pointer;
+}
+.xlink:hover { border-bottom-color: var(--ink); }
+
+
 /* --- what the model leaves out --- */
 
 footer {
@@ -775,6 +934,18 @@ python3 -m http.server 8000</pre>
         </dl>
       </article>
     </div>
+
+    <section class="block explain" id="explain">
+      <div class="explain-head">
+        <h2>How we made these numbers</h2>
+        <span class="cite" id="explain-year">Year 10</span>
+      </div>
+      <p>
+        Every step, in your numbers, for the year you selected. Click any rate
+        to open the field that holds it.
+      </p>
+      <div class="xcols" id="explain-cols"></div>
+    </section>
 
     <ul class="notes" id="warnings"></ul>
 

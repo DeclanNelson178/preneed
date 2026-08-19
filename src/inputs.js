@@ -6,46 +6,104 @@
  *
  * The starting values below are working defaults, so the dashboard opens with
  * a complete picture. He replaces them with his own.
+ *
+ * Field kinds:
+ *   currency percent years   a number, with a unit
+ *   choice                   a row of buttons. One answer.
+ *   percentRows              one percent for each early year. The count of the
+ *                            rows gives the length of the waiting period.
+ *   note                     a computed line. It holds no value of its own.
+ *
+ * A note has an `id` and no `path`, because the user cannot type into it.
  */
 
 export const BENEFIT_MODE_OPTIONS = [
   {
     value: 'fullFace',
-    label: 'Full face',
-    help: 'The policy pays the grown face amount from day one. This is the level-benefit product.',
+    label: 'The full amount',
+    help: 'A level policy. It pays the whole grown amount from day one.',
   },
   {
     value: 'percentOfFace',
-    label: 'Percent of face',
-    help: 'During the waiting period the policy pays a percent of the face amount.',
+    label: 'A part of it',
+    help: 'A graded policy. It pays a percent of the amount in the early years.',
   },
   {
     value: 'returnOfPremium',
-    label: 'Return of premium plus interest',
-    help: 'During the waiting period the policy returns the premiums paid, with interest.',
+    label: 'The money back, with interest',
+    help: 'A guaranteed-issue policy. In the early years it returns the premiums paid, with interest.',
   },
   {
     value: 'faceLessUnpaid',
-    label: 'Face less unpaid premiums',
-    help: 'The policy deducts the remaining scheduled premiums. DOUBTFUL. No carrier has confirmed it.',
+    label: 'The full amount, less the premiums not yet paid',
+    help: 'DOUBTFUL. No carrier document confirms this shape.',
+    advanced: true,
   },
 ];
 
 export const PAY_PLAN_OPTIONS = [
-  { value: 1, label: 'Paid in full' },
+  { value: 1, label: 'In full' },
   { value: 3, label: '3 years' },
   { value: 5, label: '5 years' },
   { value: 10, label: '10 years' },
 ];
+
+export const GROWTH_START_OPTIONS = [
+  { value: false, label: 'From the start' },
+  { value: true, label: 'When it is paid up' },
+];
+
+/** The most early years a graded policy can list. */
+export const MAX_WAITING_ROWS = 5;
+
+/* ------------------------------------------------------------------ */
+/* Derived values                                                      */
+/* ------------------------------------------------------------------ */
+
+/**
+ * The values that another answer already gives. He never types these.
+ *
+ * 1. He pays in full, so the single premium is the price he charges. The
+ *    contract price is also the face amount at issue, so the two are one
+ *    number. Two fields for one number can disagree. One cannot.
+ * 2. He pays in full, so there is no pay period to wait for. The growth
+ *    starts at the start.
+ * 3. A graded policy lists one percent for each early year. The count of
+ *    those years is the waiting period. He gives it once.
+ *
+ * The function writes into the object it is given and returns it.
+ */
+export function deriveValues(values) {
+  const ins = values.insurance;
+  if (ins.payments === 1) {
+    ins.annualPremium = values.price;
+    ins.growthStartsAtPaidUp = false;
+  }
+  if (ins.benefitMode === 'percentOfFace') {
+    ins.waitingYears = ins.waitingSchedule.length;
+  }
+  return values;
+}
+
+/* ------------------------------------------------------------------ */
+/* The panels                                                          */
+/* ------------------------------------------------------------------ */
+
+const paidInFull = (v) => v.insurance.payments === 1;
+const multiPay = (v) => v.insurance.payments > 1;
+const graded = (v) => v.insurance.benefitMode === 'percentOfFace';
+const moneyBack = (v) => v.insurance.benefitMode === 'returnOfPremium';
 
 /**
  * Three panels, so he never sees all of the fields at once.
  *
  * Each field:
  *   path     dotted path into the input object
- *   kind     currency | percent | years | select | toggle | percentList
+ *   id       a note has this in the place of a path
+ *   kind     currency | percent | years | choice | toggle | percentRows | note
  *   value    the starting value, in model units (a percent is a fraction)
  *   source   where he gets the real number
+ *   group    an optional heading above the field
  *   showWhen optional test against the current input object
  */
 export const PANELS = [
@@ -119,32 +177,44 @@ export const PANELS = [
   {
     id: 'insurance',
     title: 'The insurance option',
-    lede:
-      'The policy pays the benefit. You keep the commission, taxed as business '
-      + 'income, then compounded at the same net rate as the trust.',
+    lede: 'Answer the two questions. The page then asks only what the policy you picked needs.',
     fields: [
+      /* ---- the policy ---- */
       {
         path: 'insurance.payments',
-        label: 'Number of premium payments',
-        kind: 'select',
+        label: 'How does he pay?',
+        kind: 'choice',
         value: 1,
         options: PAY_PLAN_OPTIONS,
+        group: 'The policy',
         source: 'The contract.',
       },
       {
+        id: 'single-premium',
+        kind: 'note',
+        showWhen: paidInFull,
+        source: 'He pays the price once, so the premium is the price. There is nothing to type.',
+      },
+      {
         path: 'insurance.annualPremium',
-        label: 'Annual premium',
+        label: 'Premium each year',
         kind: 'currency',
         value: 9170,
         step: 100,
         min: 0,
+        showWhen: multiPay,
         source:
           'The carrier illustration. On a multi-pay plan the premiums total more '
-          + 'than the face amount. Do not divide the price.',
+          + 'than the price. Do not divide the price.',
+      },
+      {
+        id: 'premium-check',
+        kind: 'note',
+        showWhen: multiPay,
       },
       {
         path: 'insurance.growthRate',
-        label: 'Policy growth rate',
+        label: 'The amount grows, each year',
         kind: 'percent',
         value: 0.02,
         step: 0.1,
@@ -154,57 +224,88 @@ export const PANELS = [
       },
       {
         path: 'insurance.growthStartsAtPaidUp',
-        label: 'Growth starts only at paid-up',
-        kind: 'toggle',
+        label: 'The growth starts',
+        kind: 'choice',
         value: false,
+        options: GROWTH_START_OPTIONS,
+        showWhen: multiPay,
         source:
-          'Ask the carrier: does the face amount grow during the pay period, or only '
-          + 'after the policy is paid up? On a 10-pay plan this removes ten years of compounding.',
+          'Ask the carrier: does the amount grow during the pay period, or only '
+          + 'after the policy is paid up? On a 10-year plan this removes ten years of growth.',
       },
       {
         path: 'insurance.benefitMode',
-        label: 'Death benefit before the policy matures',
-        kind: 'select',
+        label: 'If he dies in the first years, the policy pays',
+        kind: 'choice',
         value: 'fullFace',
         options: BENEFIT_MODE_OPTIONS,
-        source: 'The carrier product sheet. The four modes are mutually exclusive.',
+        source: 'The carrier product sheet. One shape only. The four cannot be mixed.',
+      },
+      {
+        path: 'insurance.waitingSchedule',
+        label: 'What it pays in each early year',
+        kind: 'percentRows',
+        value: [0.4, 0.7],
+        showWhen: graded,
+        source:
+          'The carrier product sheet. Add one year for each year the policy pays a part. '
+          + '40 and 70 is folklore until a carrier document confirms it.',
       },
       {
         path: 'insurance.waitingYears',
-        label: 'Waiting period',
+        label: 'The money-back period lasts',
         kind: 'years',
         value: 2,
         step: 1,
         min: 0,
         max: 10,
+        showWhen: moneyBack,
         source: 'The carrier product sheet.',
-        showWhen: (v) => v.insurance.benefitMode === 'percentOfFace'
-          || v.insurance.benefitMode === 'returnOfPremium',
-      },
-      {
-        path: 'insurance.waitingSchedule',
-        label: 'Percent of face paid in each waiting year',
-        kind: 'percentList',
-        value: [0.4, 0.7],
-        source:
-          'The carrier product sheet. Year 1 first. 40 and 70 is folklore until a '
-          + 'carrier document confirms it.',
-        showWhen: (v) => v.insurance.benefitMode === 'percentOfFace',
       },
       {
         path: 'insurance.ropInterest',
-        label: 'Interest on returned premiums',
+        label: 'Interest added to the money paid back',
         kind: 'percent',
         value: 0.07,
         step: 0.5,
         min: 0,
         max: 30,
+        showWhen: moneyBack,
         source: 'The carrier product sheet. Often 5% to 10%. The interest is applied once.',
-        showWhen: (v) => v.insurance.benefitMode === 'returnOfPremium',
+      },
+      {
+        id: 'full-amount-from',
+        kind: 'note',
+        showWhen: (v) => graded(v) || moneyBack(v),
+      },
+      /* ---- what you keep ---- */
+      {
+        path: 'insurance.firstYearCommission',
+        label: 'You get, on the first payment',
+        kind: 'percent',
+        value: 0.12,
+        step: 0.5,
+        min: 0,
+        max: 100,
+        group: 'What you keep',
+        source: 'Your carrier commission schedule.',
+      },
+      {
+        path: 'insurance.renewalCommission',
+        label: 'You get, on the later payments',
+        kind: 'percent',
+        value: 0.03,
+        step: 0.5,
+        min: 0,
+        max: 100,
+        showWhen: multiPay,
+        source:
+          'Your carrier commission schedule. Set this equal to the first-year rate '
+          + 'for an as-earned schedule. Set it low for a heaped schedule.',
       },
       {
         path: 'insurance.businessTaxRate',
-        label: 'Business income tax rate',
+        label: 'Your business income tax rate',
         kind: 'percent',
         value: 0.3,
         step: 1,
@@ -213,25 +314,8 @@ export const PANELS = [
         source: 'Your accountant. The rate depends on how the business is organised.',
       },
       {
-        path: 'insurance.firstYearCommission',
-        label: 'First-year commission rate',
-        kind: 'percent',
-        value: 0.12,
-        step: 0.5,
-        min: 0,
-        max: 100,
-        source: 'Your carrier commission schedule. Set it equal to the renewal rate for an as-earned schedule.',
-      },
-      {
-        path: 'insurance.renewalCommission',
-        label: 'Renewal commission rate',
-        kind: 'percent',
-        value: 0.03,
-        step: 0.5,
-        min: 0,
-        max: 100,
-        source: 'Your carrier commission schedule. Set it low and the first-year rate high for a heaped schedule.',
-        showWhen: (v) => v.insurance.payments > 1,
+        id: 'commission-growth',
+        kind: 'note',
       },
     ],
   },
@@ -260,10 +344,10 @@ export function setPath(object, path, value) {
   return object;
 }
 
-/** A fresh copy of the starting values. */
+/** A fresh copy of the starting values. A note holds no value. */
 export function defaults() {
   const out = {};
-  FIELDS.forEach((field) => {
+  FIELDS.filter((field) => field.path).forEach((field) => {
     setPath(out, field.path, Array.isArray(field.value) ? field.value.slice() : field.value);
   });
   return out;

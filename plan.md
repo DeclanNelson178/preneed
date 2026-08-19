@@ -200,6 +200,9 @@ Three panels, so he never sees all of them at once.
 | First-year commission rate | WEAK | Carrier commission schedule |
 | Renewal commission rate | WEAK | Carrier commission schedule |
 
+**Section 9 supersedes the panel 3 layout.** The fields are the same. How he
+answers them is not.
+
 Every value and its status is recorded in `docs/SOURCES.md`.
 
 ---
@@ -352,3 +355,98 @@ not depend on them, so they can run in parallel.
 | Mode 4, face less unpaid premiums, may not be a real product feature | If used without confirming, the insurance curve is too pessimistic | Marked DOUBTFUL in `SOURCES.md`. Do not enable until a carrier confirms it in writing. |
 | Deterministic returns | A market fall in a claim year is invisible | Stated as an exclusion. Revisit only if he asks. |
 | One repository, one language, one copy of the maths | A defect in `model.js` is a defect everywhere | The golden test catches change. Only the law tests and hand-calculated values catch error. |
+
+---
+
+## 9. The insurance panel, rebuilt
+
+Panel 3 asked eleven questions in one flat list. Two of them held the same
+fact, one of them could disagree with the contract price, and the labels used
+the words of the model, not the words of a carrier illustration.
+
+The model in section 2 did not change. Not one line. Every number in
+`golden.test.js` is the same number.
+
+### 9.1 The premium is derived when he pays in full
+
+The contract price is the whole bill and the face amount at issue. When he
+pays in full, it is also the premium. One number cannot disagree with itself,
+so the field is gone. The page shows the premium as a line he reads:
+
+    Single premium $9,170, the price you charge. It goes to the carrier once.
+
+On a 3, 5 or 10-year plan the premium is not a function of the price. Only the
+carrier illustration gives it. So the field stays, and:
+
+- it moves with the price, at the ratio he last typed, and the page says so;
+- a line under it checks the total: *"3 payments of $3,515 come to $10,545.
+  That is 1.15 times the price."*
+
+### 9.2 Two questions, then only what that policy needs
+
+The two real decisions are now two rows of buttons at the top of the panel.
+
+| Question | Answers |
+|---|---|
+| How does he pay? | In full · 3 years · 5 years · 10 years |
+| If he dies in the first years, the policy pays | The full amount · A part of it · The money back, with interest |
+
+The fourth benefit shape, *face less unpaid premiums*, is behind **Other
+shapes**, with its DOUBTFUL note. It is not a first answer until a carrier
+confirms it.
+
+A contract paid in full, with a level benefit, now needs **four controls**, not
+eleven. The panel is in two groups: **The policy**, and **What you keep**.
+
+### 9.3 The waiting period is no longer a field
+
+A graded policy lists one percent for each early year. The count of those years
+*is* the waiting period, so he gives it once:
+
+    Year 1  [ 40 ] %
+    Year 2  [ 70 ] %
+    ADD YEAR 3    REMOVE YEAR 2
+    The full amount is paid from year 3.
+
+The money-back shape has no schedule, so it keeps one field for the length of
+the period.
+
+Two settings are now held off when he pays in full, because they cannot apply:
+the renewal commission rate, and *growth starts only at paid-up*. See section
+10.
+
+### 9.4 The arithmetic is on the screen
+
+A new block, **How we made these numbers**, shows every step for the selected
+year, in his own numbers, in three columns: the bill, the trust, insurance. A
+click on any rate opens the field that holds it.
+
+It also shows the two things the panels could not: that the commission fund
+grows at the **net trust rate**, and that a trust sale pays **no commission**,
+by 239 CMR 4.08.
+
+### 9.5 What changed in the files
+
+| File | Change |
+|---|---|
+| `src/model.js` | none |
+| `src/chart.js` | none |
+| `src/inputs.js` | new labels, two groups, three new field kinds, `deriveValues()` |
+| `src/app.js` | the new controls, the premium ratio, the explanation block |
+| `index.html` | the explanation block, and styles |
+| `test/inputs.test.js` | new. Seven tests for the derived values |
+
+51 tests pass.
+
+---
+
+## 10. Two decisions to confirm
+
+1. **Does the carrier grow a single-pay policy from issue?** The page now holds
+   *growth starts only at paid-up* off when he pays in full, and hides it. If a
+   carrier starts the growth in year 2 on a single-pay policy, this hides a
+   real feature. Question 6 in section 7 answers it.
+2. **Is the face amount at issue equal to the price on a single-pay policy?**
+   The model has always made them equal. The premium is now derived from that
+   equality, so the assumption is on the screen instead of in the code.
+   Question 10 in section 7 answers it.
