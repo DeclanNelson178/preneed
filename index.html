@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trust or insurance — a Massachusetts pre-need contract</title>
+<meta name="description" content="Compare trust funding against insurance funding for a Massachusetts cost-protected pre-need funeral contract, in every year of death.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* ==================================================================
+   Tokens
+   Light and dark are both selected. The dark steps were chosen for the
+   dark surface and validated against it, not flipped.
+   ================================================================== */
+:root {
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --font-ui: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --plane: #e6e9ec;
+  --surface: #fafbfc;
+  --surface-2: #eff2f5;
+  --ink: #14181c;
+  --ink-2: #4b545c;
+  --ink-muted: #79838c;
+  --rule: #d4d9de;
+  --rule-strong: #b3bbc3;
+
+  --trust: #2f5ea8;
+  --ins: #b96a16;
+  --loss: #d03b3b;
+  --gain: #006300;
+  --loss-wash: rgba(208, 59, 59, 0.10);
+  --loss-wash-strong: rgba(208, 59, 59, 0.16);
+  --trust-wash: rgba(47, 94, 168, 0.10);
+  --ins-wash: rgba(185, 106, 22, 0.12);
+
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(20, 24, 28, 0.06), 0 8px 24px rgba(20, 24, 28, 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    --plane: #0e1114;
+    --surface: #161a1e;
+    --surface-2: #1d2228;
+    --ink: #eef1f4;
+    --ink-2: #a8b2bb;
+    --ink-muted: #7c858e;
+    --rule: #262c32;
+    --rule-strong: #3b444c;
+
+    --trust: #5b92e0;
+    --ins: #c87c2c;
+    --loss: #d03b3b;
+    --gain: #0ca30c;
+    --loss-wash: rgba(208, 59, 59, 0.16);
+    --loss-wash-strong: rgba(208, 59, 59, 0.22);
+    --trust-wash: rgba(91, 146, 224, 0.14);
+    --ins-wash: rgba(200, 124, 44, 0.16);
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+}
+
+:root[data-theme="dark"] {
+  --plane: #0e1114;
+  --surface: #161a1e;
+  --surface-2: #1d2228;
+  --ink: #eef1f4;
+  --ink-2: #a8b2bb;
+  --ink-muted: #7c858e;
+  --rule: #262c32;
+  --rule-strong: #3b444c;
+
+  --trust: #5b92e0;
+  --ins: #c87c2c;
+  --loss: #d03b3b;
+  --gain: #0ca30c;
+  --loss-wash: rgba(208, 59, 59, 0.16);
+  --loss-wash-strong: rgba(208, 59, 59, 0.22);
+  --trust-wash: rgba(91, 146, 224, 0.14);
+  --ins-wash: rgba(200, 124, 44, 0.16);
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ==================================================================
+   Base
+   ================================================================== */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { color-scheme: light dark; }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+body {
+  margin: 0;
+  background: var(--plane);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { margin: 0; font-family: var(--font-display); font-weight: 600; letter-spacing: -0.015em; }
+p { margin: 0; }
+ul { margin: 0; padding: 0; list-style: none; }
+
+a { color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--surface);
+  padding: 12px 16px;
+  z-index: 20;
+}
+.skip:focus { left: 8px; top: 8px; }
+
+.cite {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.num { font-variant-numeric: tabular-nums; }
+
+/* ==================================================================
+   Masthead
+   ================================================================== */
+.masthead {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: clamp(32px, 6vw, 72px) clamp(16px, 4vw, 40px) clamp(24px, 4vw, 40px);
+  display: grid;
+  gap: 14px;
+}
+
+.masthead h1 {
+  font-size: clamp(2.6rem, 7.5vw, 4.6rem);
+  font-variation-settings: 'opsz' 24, 'SOFT' 40, 'WONK' 1;
+  line-height: 0.94;
+  max-width: 15ch;
+}
+
+.masthead .lede {
+  color: var(--ink-2);
+  font-size: clamp(1rem, 1.6vw, 1.125rem);
+  max-width: 54ch;
+}
+
+.masthead::after {
+  content: '';
+  display: block;
+  height: 1px;
+  background: var(--rule-strong);
+  margin-top: 8px;
+}
+
+.masthead-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.theme-toggle {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  padding: 7px 14px;
+  cursor: pointer;
+}
+.theme-toggle:hover { color: var(--ink); border-color: var(--ink-muted); }
+
+/* ==================================================================
+   Layout
+   ================================================================== */
+.layout {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px clamp(16px, 4vw, 40px) 80px;
+  display: grid;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (min-width: 1060px) {
+  .layout { grid-template-columns: minmax(320px, 380px) minmax(0, 1fr); gap: 40px; }
+  /* The rail is the one control that changes every figure, so it follows the
+     scroll — but only where the screen is tall enough to spare the room. */
+  .rail-card { position: sticky; top: 0; }
+  .panels {
+    position: sticky;
+    top: 20px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 4px;
+  }
+}
+
+/* ==================================================================
+   Inputs
+   ================================================================== */
+.panels { display: grid; gap: 14px; }
+
+.panels-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.reset {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  background: none;
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.reset:hover { color: var(--ink); border-color: var(--ink-muted); }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.panel > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 16px 18px;
+  display: grid;
+  gap: 4px;
+}
+.panel > summary::-webkit-details-marker { display: none; }
+
+.panel > summary h2 {
+  font-size: 1.0625rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.panel > summary h2::after {
+  content: '+';
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 1.1rem;
+  color: var(--ink-muted);
+}
+.panel[open] > summary h2::after { content: '–'; }
+
+.panel > summary p {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  max-width: 46ch;
+}
+
+.panel-body { padding: 4px 18px 18px; display: grid; gap: 18px; }
+
+.field { display: grid; gap: 6px; }
+
+.field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.field-head label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.chip {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid var(--rule-strong);
+  color: var(--ink-2);
+  white-space: nowrap;
+  cursor: help;
+}
+.chip--unsourced { border-color: var(--loss); color: var(--loss); }
+.chip--weak { border-color: var(--ink-muted); color: var(--ink-2); background: var(--surface-2); }
+.chip--hisData { border-color: var(--rule-strong); color: var(--ink-2); }
+.chip--choice { border-style: dashed; color: var(--ink-muted); }
+
+.control {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.control:focus-within { border-color: var(--ink); box-shadow: 0 0 0 3px var(--trust-wash); }
+
+.control .affix {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+  padding: 0 10px;
+  flex: none;
+}
+.control .affix + input { padding-left: 0; }
+
+.control input,
+.control select {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+  padding: 9px 10px;
+}
+.control input:focus, .control select:focus { outline: none; }
+.control select { cursor: pointer; }
+
+.field-source {
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--ink-muted);
+  max-width: 48ch;
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--ink-2);
+}
+.switch input { width: 18px; height: 18px; accent-color: var(--trust); cursor: pointer; }
+
+.status-key {
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+}
+
+/* ==================================================================
+   Results
+   ================================================================== */
+.results { display: grid; gap: 28px; min-width: 0; }
+
+/* --- the year rail: the one control that changes every figure --- */
+.rail-card {
+  z-index: 6;
+  background: var(--plane);
+  padding: 14px 0 12px;
+  border-bottom: 1px solid var(--rule-strong);
+  display: grid;
+  gap: 4px;
+}
+
+.rail-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  flex-wrap: wrap;
+}
+.rail-head h2 { font-size: 1.0625rem; }
+.rail-read {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.rail-read b { color: var(--ink); font-weight: 500; }
+
+.rail { touch-action: none; }
+.rail-svg { display: block; width: 100%; cursor: ew-resize; }
+.rail-svg text { font-family: var(--font-ui); }
+.rail-tick { font-size: 10px; fill: var(--ink-muted); font-variant-numeric: tabular-nums; }
+/* A halo keeps the note legible where the handle crosses it. */
+.rail-note {
+  font-size: 11px;
+  fill: var(--ink-2);
+  stroke: var(--plane);
+  stroke-width: 3px;
+  paint-order: stroke;
+}
+
+@media (max-width: 560px) { .rail-hint { display: none; } }
+
+/* --- the verdict --- */
+.verdict { display: grid; gap: 6px; max-width: 52ch; }
+.verdict-lead {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+  font-variation-settings: 'opsz' 24, 'SOFT' 40, 'WONK' 1;
+  line-height: 1.25;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+}
+.verdict-sub { font-size: 0.9375rem; color: var(--ink-2); }
+
+/* --- the two option cards --- */
+.cards { display: grid; gap: 16px; }
+@media (min-width: 640px) { .cards { grid-template-columns: 1fr 1fr; } }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--rule-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 18px 6px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+.card[data-option="trust"] { border-top-color: var(--trust); }
+.card[data-option="insurance"] { border-top-color: var(--ins); }
+
+.card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.card-head h3 { font-size: 1.0625rem; }
+.swatch { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+.card[data-option="trust"] .swatch { background: var(--trust); }
+.card[data-option="insurance"] .swatch { background: var(--ins); }
+
+.big { display: grid; gap: 2px; }
+.big-value {
+  font-size: clamp(1.75rem, 4.5vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.big-value[data-sign="loss"] { color: var(--loss); }
+.big-value[data-sign="gain"] { color: var(--gain); }
+.big-label { font-size: 0.75rem; color: var(--ink-muted); }
+.big-label b { font-weight: 600; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--font-mono); font-size: 0.6875rem; }
+
+.card dl { margin: 0; display: grid; gap: 0; }
+.card dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--rule);
+  font-size: 0.875rem;
+}
+.card dt { color: var(--ink-2); }
+.card dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 500; }
+
+/* --- notes and warnings --- */
+.notes { display: grid; gap: 8px; }
+.note {
+  display: flex;
+  gap: 10px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--loss);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+.note::before {
+  content: 'CHECK';
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.09em;
+  color: var(--loss);
+  flex: none;
+  padding-top: 2px;
+}
+
+/* --- figures --- */
+.figure {
+  margin: 0;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 16px 8px;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.figure figcaption { display: grid; gap: 3px; }
+.figure h3 { font-size: 1rem; }
+.figure figcaption p { font-size: 0.8125rem; color: var(--ink-muted); max-width: 58ch; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.8125rem; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.legend i { width: 12px; height: 3px; border-radius: 2px; flex: none; }
+.legend i[data-kind="rule"] { background: none; border-top: 2px dashed var(--ink-muted); height: 0; }
+
+.viz { position: relative; min-width: 0; }
+.viz-svg { display: block; width: 100%; touch-action: pan-y; }
+.viz-svg text { font-family: var(--font-ui); }
+.viz-tick { font-size: 11px; fill: var(--ink-muted); font-variant-numeric: tabular-nums; }
+.viz-axis-title { font-size: 11px; fill: var(--ink-muted); }
+.viz-direct-label { font-size: 12px; fill: var(--ink-2); }
+.viz-loss-flag { font-size: 11px; fill: var(--loss); letter-spacing: 0.06em; }
+
+.viz-tip[hidden] { display: none; }
+
+.viz-tip {
+  position: absolute;
+  transform: translateY(-100%);
+  pointer-events: none;
+  background: var(--surface);
+  border: 1px solid var(--rule-strong);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 8px 10px;
+  display: grid;
+  gap: 3px;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  z-index: 4;
+}
+.viz-tip-year { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); }
+.viz-tip-row { display: flex; align-items: center; gap: 7px; color: var(--ink-2); }
+.viz-tip-row i { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+.viz-tip-row b { margin-left: auto; padding-left: 14px; color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; }
+.viz-tip-rule { padding-left: 16px; color: var(--ink-muted); }
+
+/* --- tables --- */
+details.numbers { border-top: 1px solid var(--rule); }
+details.numbers > summary {
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  padding: 10px 0;
+}
+details.numbers > summary::-webkit-details-marker { display: none; }
+details.numbers > summary::before { content: '▸ '; }
+details.numbers[open] > summary::before { content: '▾ '; }
+details.numbers > summary:hover { color: var(--ink); }
+
+.table-wrap {
+  overflow: auto;
+  max-height: 420px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+table { border-collapse: collapse; width: 100%; font-size: 0.8125rem; }
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--rule-strong);
+  text-align: right;
+  font-weight: 600;
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  padding: 8px 10px;
+  white-space: nowrap;
+  z-index: 2;
+}
+/* The year column stays put while the rest scrolls sideways on a phone. */
+thead th:first-child { text-align: left; left: 0; z-index: 3; }
+tbody td {
+  text-align: right;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--rule);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+tbody td:first-child {
+  text-align: left;
+  font-family: var(--font-mono);
+  color: var(--ink-muted);
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
+}
+tbody tr[data-selected="true"] td { background: var(--surface-2); color: var(--ink); }
+tbody td[data-sign="loss"] { color: var(--loss); }
+tbody .rule-col { border-left: 1px solid var(--rule); }
+
+.block {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 16px 6px;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+.block h2 { font-size: 1.0625rem; }
+.block > p { font-size: 0.8125rem; color: var(--ink-muted); max-width: 62ch; }
+
+/* --- what the model leaves out --- */
+.excl { display: grid; gap: 0; }
+.excl li {
+  display: grid;
+  gap: 2px;
+  padding: 10px 0;
+  border-top: 1px solid var(--rule);
+  font-size: 0.8125rem;
+}
+.excl b { font-weight: 600; color: var(--ink); }
+.excl span { color: var(--ink-muted); }
+
+footer {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 4vw, 40px) 56px;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  display: grid;
+  gap: 6px;
+  max-width: 76ch;
+}
+
+/* ==================================================================
+   The start-up notice
+   A browser refuses to load a module script on a file:// page, so the
+   dashboard cannot build. An empty screen tells the reader nothing.
+   ================================================================== */
+.startup {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px clamp(16px, 4vw, 40px) 40px;
+}
+.startup-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--loss);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+  display: grid;
+  gap: 12px;
+  max-width: 64ch;
+}
+.startup-card h2 { font-size: 1.25rem; }
+.startup-card p { font-size: 0.9375rem; color: var(--ink-2); }
+.startup-card code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--surface-2);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.startup-card pre {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#results">Skip to the results</a>
+
+<header class="masthead">
+  <div class="masthead-top">
+    <p class="cite">Massachusetts &middot; 239 CMR 4.08(6)</p>
+    <button type="button" class="theme-toggle" id="theme-toggle">Theme: auto</button>
+  </div>
+  <h1>Trust or insurance</h1>
+  <p class="lede">
+    One cost-protected pre-need contract, funded two ways. Enter your own numbers.
+    Read what each way is worth to you in every year of death — because you keep
+    the surplus, and you absorb the loss.
+  </p>
+</header>
+
+<div class="startup" id="startup" hidden>
+  <div class="startup-card">
+    <p class="cite">The page did not start</p>
+    <h2>Open this over http, not straight from the file</h2>
+    <p>
+      A browser blocks JavaScript modules on a <code>file://</code> page. The
+      dashboard builds every input field and every chart in JavaScript, so it
+      cannot build. Nothing is broken. The page needs a web address.
+    </p>
+    <p>Start a small server in this folder, then open the address it prints:</p>
+<pre>cd /Users/declannelson/Desktop/code/preneed
+python3 -m http.server 8000</pre>
+    <p>
+      Then open <code>http://localhost:8000</code>. On a Mac you can also
+      double-click <code>serve.command</code> in this folder, which does both
+      steps for you. On GitHub Pages the page is already served over http, so
+      this notice never appears there.
+    </p>
+  </div>
+</div>
+
+<main class="layout">
+
+  <form class="panels" id="panels" autocomplete="off">
+    <div class="panels-head">
+      <p class="cite">Your numbers</p>
+      <button type="button" class="reset" id="reset">Reset</button>
+    </div>
+    <p class="status-key" id="status-key"></p>
+    <!-- The three panels are built from src/inputs.js. -->
+  </form>
+
+  <section class="results" id="results" aria-label="Results">
+
+    <div class="rail-card">
+      <div class="rail-head">
+        <h2>Year of death</h2>
+        <p class="rail-read"><span class="rail-hint">Drag, or press the arrow keys &middot; </span><b id="year-read">Year 1</b></p>
+      </div>
+      <div id="rail"></div>
+    </div>
+
+    <div class="verdict" id="verdict"></div>
+
+    <div class="cards">
+      <article class="card" data-option="trust">
+        <div class="card-head">
+          <span class="swatch" aria-hidden="true"></span>
+          <h3>Trust</h3>
+          <span class="chip chip--choice" title="239 CMR 4.08 pays no commission on a trust sale.">no commission</span>
+        </div>
+        <div class="big">
+          <span class="big-value" id="trust-margin">—</span>
+          <span class="big-label"><b id="trust-margin-word">margin</b> in year <span id="trust-margin-year">1</span></span>
+        </div>
+        <dl>
+          <div><dt>Total to you</dt><dd id="trust-total">—</dd></div>
+          <div><dt>Cost of the funeral</dt><dd id="trust-cost">—</dd></div>
+          <div><dt>Effective annual rate</dt><dd id="trust-ear">—</dd></div>
+        </dl>
+      </article>
+
+      <article class="card" data-option="insurance">
+        <div class="card-head">
+          <span class="swatch" aria-hidden="true"></span>
+          <h3>Insurance</h3>
+          <span class="chip chip--choice" id="ins-plan">paid in full</span>
+        </div>
+        <div class="big">
+          <span class="big-value" id="ins-margin">—</span>
+          <span class="big-label"><b id="ins-margin-word">margin</b> in year <span id="ins-margin-year">1</span></span>
+        </div>
+        <dl>
+          <div><dt>Death benefit</dt><dd id="ins-benefit">—</dd></div>
+          <div><dt>Commission fund, after tax</dt><dd id="ins-commission">—</dd></div>
+          <div><dt>Total to you</dt><dd id="ins-total">—</dd></div>
+          <div><dt>Cost of the funeral</dt><dd id="ins-cost">—</dd></div>
+          <div><dt>Effective annual rate</dt><dd id="ins-ear">—</dd></div>
+        </dl>
+      </article>
+    </div>
+
+    <ul class="notes" id="warnings"></ul>
+
+    <figure class="figure" id="fig-margin">
+      <figcaption>
+        <h3>Margin, by year of death</h3>
+        <p>
+          What is left after the bill is paid. Above the line you keep it, under
+          239 CMR 4.08(6)(a). Under the line you absorb it, under 4.08(6)(b), and
+          you may not bill the estate.
+        </p>
+      </figcaption>
+      <div class="legend"></div>
+      <div class="viz-host"></div>
+      <details class="numbers">
+        <summary>Show the numbers</summary>
+        <div class="table-wrap"></div>
+      </details>
+    </figure>
+
+    <figure class="figure" id="fig-money">
+      <figcaption>
+        <h3>Money against the bill</h3>
+        <p>What each option puts in your hand at death, against what the funeral costs that year.</p>
+      </figcaption>
+      <div class="legend"></div>
+      <div class="viz-host"></div>
+      <details class="numbers">
+        <summary>Show the numbers</summary>
+        <div class="table-wrap"></div>
+      </details>
+    </figure>
+
+    <figure class="figure" id="fig-rate">
+      <figcaption>
+        <h3>Effective annual rate</h3>
+        <p>
+          The growth each option had to earn on the price you guaranteed. The dashed
+          line is funeral inflation. Above it you gain ground. Below it you lose ground.
+        </p>
+      </figcaption>
+      <div class="legend"></div>
+      <div class="viz-host"></div>
+      <details class="numbers">
+        <summary>Show the numbers</summary>
+        <div class="table-wrap"></div>
+      </details>
+    </figure>
+
+    <section class="block" id="full-table">
+      <h2>Every year, side by side</h2>
+      <p>Year 1 to year 30. The selected year is marked.</p>
+      <div class="table-wrap"></div>
+    </section>
+
+    <section class="block">
+      <h2>What this does not do</h2>
+      <p>
+        Every item below is a decision, not a defect. Read them before you act on a number.
+      </p>
+      <ul class="excl">
+        <li><b>Mortality</b><span>Every year of death is shown as a curve. The years are not weighted by how likely each one is, and there is no single expected value.</span></li>
+        <li><b>Non-cost-protected contracts</b><span>The family pays the difference, so there is no funeral-home economics to model.</span></li>
+        <li><b>Instalment trusts</b><span>A part-funded trust is not cost-protected under 239 CMR 4.01.</span></li>
+        <li><b>Cash advance items</b><span>Billed to the family at the time of service. 239 CMR 4.08(6)(c) and (d) are out of scope.</span></li>
+        <li><b>The tax engine</b><span>One measured effective rate replaces it. See docs/LAW.md section 7.</span></li>
+        <li><b>Lapse and commission chargeback</b><span>A real risk on a multi-pay plan. It stays with you.</span></li>
+        <li><b>Accidental death benefit</b><span>Most policies pay full face for accidental death inside the waiting period. Years 1 and 2 are therefore slightly pessimistic on a graded product.</span></li>
+        <li><b>Sequence of returns</b><span>The return is a fixed rate, not a market path. A fall that lands in a claim year is not modelled.</span></li>
+        <li><b>Working capital</b><span>239 CMR 4.08(5) requires a death certificate and a certification of performance before payment. You carry the case for some weeks.</span></li>
+        <li><b>Contract cancellation</b><span>239 CMR 4.07 governs cancellation and refunds. Not modelled.</span></li>
+      </ul>
+    </section>
+
+  </section>
+</main>
+
+<footer>
+  <p class="cite">Read this before you use it</p>
+  <p>
+    This is a calculator, not advice. Every starting value is a placeholder. Replace
+    each one with your trustee statement, your general price list, your carrier
+    illustration and your accountant's rate. The status mark beside each field says
+    how far the starting value can be trusted.
+  </p>
+  <p>Rules quoted from 239 CMR 4.00 and M.G.L. c. 203C. Working papers: docs/LAW.md and docs/SOURCES.md.</p>
+</footer>
+
+<script type="module" src="./src/app.js"></script>
+<script>
+// A classic script, so it still runs when the module above is blocked.
+// A module script executes before DOMContentLoaded, so an absent panel here
+// means the module never ran.
+document.addEventListener('DOMContentLoaded', function () {
+  if (document.querySelector('.panel')) return;
+  document.getElementById('startup').hidden = false;
+  document.querySelector('main.layout').hidden = true;
+});
+</script>
+</body>
+</html>

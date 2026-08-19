@@ -1,0 +1,10 @@
+{
+  "name": "preneed",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Trust funding against insurance funding for a Massachusetts cost-protected pre-need funeral contract.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}
