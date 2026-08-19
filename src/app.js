@@ -6,7 +6,7 @@
 
 import { HORIZON, project } from './model.js';
 import {
-  PANELS, STATUS, defaults, getPath, setPath,
+  PANELS, defaults, getPath, setPath,
 } from './inputs.js';
 import { lineChart, yearRail } from './chart.js';
 
@@ -30,10 +30,6 @@ const money = (n) => (Number.isFinite(n)
   : '—');
 
 const moneyTick = (n) => (n < 0 ? MINUS + compactFmt.format(-n) : compactFmt.format(n));
-
-const percent = (fraction, places = 2) => (Number.isFinite(fraction)
-  ? `${(fraction * 100).toFixed(places)}%`
-  : '—');
 
 /** Percent fields are held as fractions and shown as percents. */
 const toPercentInput = (fraction) => Math.round(fraction * 1e6) / 1e4;
@@ -89,15 +85,6 @@ const el = (tag, props = {}, children = []) => {
   return node;
 };
 
-function chipFor(field) {
-  const status = STATUS[field.status];
-  return el('span', {
-    class: `chip chip--${field.status}`,
-    text: status.label,
-    title: status.note,
-  });
-}
-
 function inputValueFor(field) {
   const raw = getPath(values, field.path);
   switch (field.kind) {
@@ -119,11 +106,9 @@ function buildField(field) {
       input, el('span', { text: field.label }),
     ]);
     head.appendChild(label);
-    head.appendChild(chipFor(field));
     wrapper.appendChild(head);
   } else {
     head.appendChild(el('label', { htmlFor: id, text: field.label }));
-    head.appendChild(chipFor(field));
     wrapper.appendChild(head);
 
     const control = el('div', { class: 'control' });
@@ -175,14 +160,6 @@ function buildPanels() {
     panel.fields.forEach((field) => body.appendChild(buildField(field)));
     details.appendChild(body);
     form.appendChild(details);
-  });
-
-  const key = document.getElementById('status-key');
-  key.appendChild(document.createTextNode('Every field is marked: '));
-  Object.entries(STATUS).forEach(([id, status]) => {
-    key.appendChild(el('span', {
-      class: `chip chip--${id}`, text: status.label, title: status.note,
-    }));
   });
 }
 
@@ -327,19 +304,10 @@ function buildCharts(result) {
       formatTick: moneyTick,
       ariaLabel: 'Money to the funeral home at death against the cost of the funeral, by year of death.',
     }),
-    rate: lineChart(hostOf('fig-rate'), {
-      ...shared,
-      series: rateSeries(result),
-      threshold: { label: 'inflation', values: result.rows.map(() => result.inputs.inflation) },
-      format: (n) => percent(n),
-      formatTick: (n) => percent(n, 1),
-      ariaLabel: 'Effective annual rate earned on the guaranteed price, against funeral inflation.',
-    }),
   };
 
   renderLegend(legendOf('fig-margin'), seriesLegend);
   renderLegend(legendOf('fig-money'), [...seriesLegend, { label: 'Cost of the funeral', kind: 'rule' }]);
-  renderLegend(legendOf('fig-rate'), [...seriesLegend, { label: 'Funeral inflation', kind: 'rule' }]);
 }
 
 const marginSeries = (result) => [
@@ -350,11 +318,6 @@ const marginSeries = (result) => [
 const moneySeries = (result) => [
   { key: 'trust', label: 'Trust', colorVar: '--trust', values: result.rows.map((r) => r.trust.total) },
   { key: 'ins', label: 'Insurance', colorVar: '--ins', values: result.rows.map((r) => r.insurance.total) },
-];
-
-const rateSeries = (result) => [
-  { key: 'trust', label: 'Trust', colorVar: '--trust', values: result.rows.map((r) => r.trust.effectiveRate) },
-  { key: 'ins', label: 'Insurance', colorVar: '--ins', values: result.rows.map((r) => r.insurance.effectiveRate) },
 ];
 
 const railBands = (result) => [
@@ -383,7 +346,6 @@ function renderCards(row) {
     setText(`${prefix}-margin-year`, String(row.year));
     setText(`${prefix}-total`, money(side.total));
     setText(`${prefix}-cost`, money(row.cost));
-    setText(`${prefix}-ear`, percent(side.effectiveRate));
   });
   setText('ins-benefit', money(row.insurance.funds));
   setText('ins-commission', money(row.insurance.commission));
@@ -444,11 +406,6 @@ function render() {
       series: moneySeries(result),
       threshold: { label: 'the bill', values: result.rows.map((r) => r.cost) },
     });
-    charts.rate.update({
-      selected: selectedYear,
-      series: rateSeries(result),
-      threshold: { label: 'inflation', values: result.rows.map(() => result.inputs.inflation) },
-    });
   }
 
   renderTable(tableOf('fig-margin'), result.rows, [
@@ -465,24 +422,15 @@ function render() {
     { label: 'Cost of the funeral', get: (r) => money(r.cost), rule: true },
   ]);
 
-  renderTable(tableOf('fig-rate'), result.rows, [
-    yearColumn,
-    { label: 'Trust rate', get: (r) => percent(r.trust.effectiveRate) },
-    { label: 'Insurance rate', get: (r) => percent(r.insurance.effectiveRate) },
-    { label: 'Funeral inflation', get: () => percent(result.inputs.inflation), rule: true },
-  ]);
-
   renderTable(document.querySelector('#full-table .table-wrap'), result.rows, [
     yearColumn,
     { label: 'Cost', get: (r) => money(r.cost) },
     { label: 'Trust total', get: (r) => money(r.trust.total), rule: true },
     { label: 'Trust margin', get: (r) => money(r.trust.margin), sign: lossSign((r) => r.trust.margin) },
-    { label: 'Trust rate', get: (r) => percent(r.trust.effectiveRate) },
     { label: 'Benefit', get: (r) => money(r.insurance.funds), rule: true },
     { label: 'Commission', get: (r) => money(r.insurance.commission) },
     { label: 'Insurance total', get: (r) => money(r.insurance.total) },
     { label: 'Insurance margin', get: (r) => money(r.insurance.margin), sign: lossSign((r) => r.insurance.margin) },
-    { label: 'Insurance rate', get: (r) => percent(r.insurance.effectiveRate) },
   ]);
 }
 

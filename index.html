@@ -161,11 +161,6 @@ a { color: inherit; }
   max-width: 15ch;
 }
 
-.masthead .lede {
-  color: var(--ink-2);
-  font-size: clamp(1rem, 1.6vw, 1.125rem);
-  max-width: 54ch;
-}
 
 .masthead::after {
   content: '';
@@ -178,7 +173,7 @@ a { color: inherit; }
 .masthead-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 16px;
 }
 
@@ -318,9 +313,6 @@ a { color: inherit; }
   white-space: nowrap;
   cursor: help;
 }
-.chip--unsourced { border-color: var(--loss); color: var(--loss); }
-.chip--weak { border-color: var(--ink-muted); color: var(--ink-2); background: var(--surface-2); }
-.chip--hisData { border-color: var(--rule-strong); color: var(--ink-2); }
 .chip--choice { border-style: dashed; color: var(--ink-muted); }
 
 .control {
@@ -374,14 +366,6 @@ a { color: inherit; }
 }
 .switch input { width: 18px; height: 18px; accent-color: var(--trust); cursor: pointer; }
 
-.status-key {
-  font-size: 0.75rem;
-  color: var(--ink-muted);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 10px;
-  align-items: center;
-}
 
 /* ==================================================================
    Results
@@ -643,16 +627,6 @@ tbody .rule-col { border-left: 1px solid var(--rule); }
 .block > p { font-size: 0.8125rem; color: var(--ink-muted); max-width: 62ch; }
 
 /* --- what the model leaves out --- */
-.excl { display: grid; gap: 0; }
-.excl li {
-  display: grid;
-  gap: 2px;
-  padding: 10px 0;
-  border-top: 1px solid var(--rule);
-  font-size: 0.8125rem;
-}
-.excl b { font-weight: 600; color: var(--ink); }
-.excl span { color: var(--ink-muted); }
 
 footer {
   max-width: 1440px;
@@ -718,15 +692,9 @@ footer {
 
 <header class="masthead">
   <div class="masthead-top">
-    <p class="cite">Massachusetts &middot; 239 CMR 4.08(6)</p>
     <button type="button" class="theme-toggle" id="theme-toggle">Theme: auto</button>
   </div>
   <h1>Trust or insurance</h1>
-  <p class="lede">
-    One cost-protected pre-need contract, funded two ways. Enter your own numbers.
-    Read what each way is worth to you in every year of death — because you keep
-    the surplus, and you absorb the loss.
-  </p>
 </header>
 
 <div class="startup" id="startup" hidden>
@@ -757,7 +725,6 @@ python3 -m http.server 8000</pre>
       <p class="cite">Your numbers</p>
       <button type="button" class="reset" id="reset">Reset</button>
     </div>
-    <p class="status-key" id="status-key"></p>
     <!-- The three panels are built from src/inputs.js. -->
   </form>
 
@@ -778,7 +745,7 @@ python3 -m http.server 8000</pre>
         <div class="card-head">
           <span class="swatch" aria-hidden="true"></span>
           <h3>Trust</h3>
-          <span class="chip chip--choice" title="239 CMR 4.08 pays no commission on a trust sale.">no commission</span>
+          <span class="chip chip--choice" title="A trust sale pays you no commission.">no commission</span>
         </div>
         <div class="big">
           <span class="big-value" id="trust-margin">—</span>
@@ -787,7 +754,6 @@ python3 -m http.server 8000</pre>
         <dl>
           <div><dt>Total to you</dt><dd id="trust-total">—</dd></div>
           <div><dt>Cost of the funeral</dt><dd id="trust-cost">—</dd></div>
-          <div><dt>Effective annual rate</dt><dd id="trust-ear">—</dd></div>
         </dl>
       </article>
 
@@ -806,7 +772,6 @@ python3 -m http.server 8000</pre>
           <div><dt>Commission fund, after tax</dt><dd id="ins-commission">—</dd></div>
           <div><dt>Total to you</dt><dd id="ins-total">—</dd></div>
           <div><dt>Cost of the funeral</dt><dd id="ins-cost">—</dd></div>
-          <div><dt>Effective annual rate</dt><dd id="ins-ear">—</dd></div>
         </dl>
       </article>
     </div>
@@ -817,9 +782,8 @@ python3 -m http.server 8000</pre>
       <figcaption>
         <h3>Margin, by year of death</h3>
         <p>
-          What is left after the bill is paid. Above the line you keep it, under
-          239 CMR 4.08(6)(a). Under the line you absorb it, under 4.08(6)(b), and
-          you may not bill the estate.
+          What is left after the bill is paid. Above the line you keep it. Under
+          the line you absorb it, and you may not bill the estate.
         </p>
       </figcaption>
       <div class="legend"></div>
@@ -843,59 +807,22 @@ python3 -m http.server 8000</pre>
       </details>
     </figure>
 
-    <figure class="figure" id="fig-rate">
-      <figcaption>
-        <h3>Effective annual rate</h3>
-        <p>
-          The growth each option had to earn on the price you guaranteed. The dashed
-          line is funeral inflation. Above it you gain ground. Below it you lose ground.
-        </p>
-      </figcaption>
-      <div class="legend"></div>
-      <div class="viz-host"></div>
-      <details class="numbers">
-        <summary>Show the numbers</summary>
-        <div class="table-wrap"></div>
-      </details>
-    </figure>
-
     <section class="block" id="full-table">
       <h2>Every year, side by side</h2>
       <p>Year 1 to year 30. The selected year is marked.</p>
       <div class="table-wrap"></div>
     </section>
 
-    <section class="block">
-      <h2>What this does not do</h2>
-      <p>
-        Every item below is a decision, not a defect. Read them before you act on a number.
-      </p>
-      <ul class="excl">
-        <li><b>Mortality</b><span>Every year of death is shown as a curve. The years are not weighted by how likely each one is, and there is no single expected value.</span></li>
-        <li><b>Non-cost-protected contracts</b><span>The family pays the difference, so there is no funeral-home economics to model.</span></li>
-        <li><b>Instalment trusts</b><span>A part-funded trust is not cost-protected under 239 CMR 4.01.</span></li>
-        <li><b>Cash advance items</b><span>Billed to the family at the time of service. 239 CMR 4.08(6)(c) and (d) are out of scope.</span></li>
-        <li><b>The tax engine</b><span>One measured effective rate replaces it. See docs/LAW.md section 7.</span></li>
-        <li><b>Lapse and commission chargeback</b><span>A real risk on a multi-pay plan. It stays with you.</span></li>
-        <li><b>Accidental death benefit</b><span>Most policies pay full face for accidental death inside the waiting period. Years 1 and 2 are therefore slightly pessimistic on a graded product.</span></li>
-        <li><b>Sequence of returns</b><span>The return is a fixed rate, not a market path. A fall that lands in a claim year is not modelled.</span></li>
-        <li><b>Working capital</b><span>239 CMR 4.08(5) requires a death certificate and a certification of performance before payment. You carry the case for some weeks.</span></li>
-        <li><b>Contract cancellation</b><span>239 CMR 4.07 governs cancellation and refunds. Not modelled.</span></li>
-      </ul>
-    </section>
 
   </section>
 </main>
 
 <footer>
-  <p class="cite">Read this before you use it</p>
   <p>
     This is a calculator, not advice. Every starting value is a placeholder. Replace
     each one with your trustee statement, your general price list, your carrier
-    illustration and your accountant's rate. The status mark beside each field says
-    how far the starting value can be trusted.
+    illustration and your accountant's rate.
   </p>
-  <p>Rules quoted from 239 CMR 4.00 and M.G.L. c. 203C. Working papers: docs/LAW.md and docs/SOURCES.md.</p>
 </footer>
 
 <script type="module" src="./src/app.js"></script>

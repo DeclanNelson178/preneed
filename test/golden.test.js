@@ -97,7 +97,6 @@ test('golden — every starting value in src/inputs.js', () => {
   assert.deepEqual(defaults(), {
     price: 9170,
     inflation: 0.046,
-    deliveryPercent: 1,
     trust: {
       grossReturn: 0.055,
       fees: 0.0075,
