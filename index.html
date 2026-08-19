@@ -785,19 +785,6 @@ tbody .rule-col { border-left: 1px solid var(--rule); }
 .xlink:hover { border-bottom-color: var(--ink); }
 
 
-/* --- what the model leaves out --- */
-
-footer {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0 clamp(16px, 4vw, 40px) 56px;
-  font-size: 0.75rem;
-  color: var(--ink-muted);
-  display: grid;
-  gap: 6px;
-  max-width: 76ch;
-}
-
 /* ==================================================================
    The start-up notice
    A browser refuses to load a module script on a file:// page, so the
@@ -987,14 +974,6 @@ python3 -m http.server 8000</pre>
 
   </section>
 </main>
-
-<footer>
-  <p>
-    This is a calculator, not advice. Every starting value is a placeholder. Replace
-    each one with your trustee statement, your general price list, your carrier
-    illustration and your accountant's rate.
-  </p>
-</footer>
 
 <script type="module" src="./src/app.js"></script>
 <script>
