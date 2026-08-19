@@ -34,9 +34,44 @@ the recent period. Both are discarded.
 
 | Input | Starting value | Status | Basis |
 |---|---|---|---|
-| Trust gross rate of return | none | **HIS DATA** | Trustee statement. Ask for the written investment policy and the last ten years of actual return. Equities are lawful under 239 CMR 4.09(3) and M.G.L. c. 203C, but a bank trust department may hold bonds and certificates of deposit. Do not assume. |
-| Trust fees | none | **HIS DATA** | Trustee statement. All-in: trustee fee plus administration. |
-| Trust effective tax rate | none | **HIS DATA** | Tax paid divided by income earned, from the trustee. See `LAW.md` section 7 for the four questions to ask. If the trust is a grantor trust, this is **zero**, because the customer pays. |
+| Trust net rate of return, after fees and after tax | 4.3% | **WEAK** | One field. See the note below. Replace it with a measurement from the trustee. |
+
+**Note on the single field.** The trust used to take three numbers: a gross
+return, a fee and a tax rate. A tax rate needs a base, and the two obvious bases
+disagree. Tax divided by income earned and tax divided by total return give the
+same answer for a bond account and differ by about three times for an equity
+account, because most of an equity return is appreciation that was never sold
+and never taxed. The three fields shipped at 5.5%, 0.75% and 15%, which taxed
+the whole return and put the year-30 balance at $29,105 against a $35,344 bill.
+
+The account balance has no such ambiguity, and 239 CMR 4.09(2) makes it the
+number that matters: "The entire account balance shall be payable to the
+Licensed Funeral Establishment". Fees, tax and realisation timing are all
+already inside it. So the model asks for the balance growth and nothing else.
+
+**How to measure it.** Ask the trustee for ten years of year-end balances on one
+fully-funded account that had no deposits and no withdrawals, then compute
+`(last balance / first balance) ^ (1 / years) - 1`. This works whether or not
+the trustee makes the qualified funeral trust election: if the trustee pays the
+tax from the account it is already out of the balance, and if it is a grantor
+trust the customer paid it personally and the balance was never touched. Either
+way the balance is what the funeral establishment receives.
+
+**Limits.** The measurement is backward-looking, and the last ten years hold
+both a strong equity run and the 2022 fall in bonds. It needs a real account
+with a real history, so a new trustee cannot supply one. And if the trustee
+changed its investment policy inside that period, the history describes a
+portfolio that no longer exists.
+
+**Basis for the 4.3% starting value.** It is the old three-field default carried
+across: a 5.5% gross return, less a 0.75% fee, less a 0.42% tax drag. The 0.42%
+assumes a 60/40 account where 2.5% of the return is interest and dividends, 3.0%
+is appreciation, 10% of that appreciation is realised each year, and the 2.8%
+that is taxed meets a 15% marginal rate. The 15% comes from IRC §685(c): a
+qualified funeral trust taxes each beneficiary's interest as its own small
+trust, and $9,170 earning 5.5% produces about $504 of income, which sits at the
+bottom of the schedule. None of that arithmetic is in the code any more. It only
+explains where 4.3% came from, and it is **not** a source. Replace it.
 
 **Note on the old notebook.** It used a 5.5% gross return, a 0.75% fee, and a
 whole federal and Massachusetts bracket engine driven by an assumed portfolio

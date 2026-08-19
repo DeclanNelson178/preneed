@@ -217,17 +217,38 @@ is taxed on the trust income personally. Massachusetts follows: **M.G.L. c. 62
 taxable income. In practice the trustee sends the customer a grantor trust tax
 information statement.
 
-**Plain English.** The customer pays the tax out of their own pocket. The trust
-balance is untouched, so the effective rate the model needs is **zero**.
+**Plain English.** The customer pays the tax out of their own pocket, so the
+trust balance is never touched by tax at all.
 
 ### What your uncle should ask the trustee
 
-1. Do you make the qualified funeral trust election and file Form 1041-QFT?
-2. If yes, send me the last filed return and the matching Massachusetts Form 2.
-3. If no, send me a sample grantor trust tax information statement.
-4. What was the tax paid, divided by the income earned, last year?
+The dashboard takes **one** trust number: how fast the account balance grows,
+after fees and after tax. So the question is about balances, not rates.
 
-Answer 4 is the number he types into the dashboard.
+1. Send me ten years of year-end balances for one fully-funded account that had
+   no deposits and no withdrawals.
+2. Do you make the qualified funeral trust election and file Form 1041-QFT?
+3. If yes, send me the last filed return and the matching Massachusetts Form 2.
+4. If no, send me a sample grantor trust tax information statement.
+5. Send me the written investment policy for the fund.
+
+Answer 1 is the number. Compute `(last balance ÷ first balance) ^ (1/years) − 1`
+and type it in. It is correct under either tax treatment: under the election the
+trustee pays the tax from the account, so it is already out of the balance;
+without the election the customer pays personally, so the balance was never
+touched. Either way the balance is what the funeral establishment receives under
+239 CMR 4.09(2).
+
+Answers 2 to 4 do not change the arithmetic. They tell him which world he is in,
+and they let him check that answer 1 is what he thinks it is. Answer 5 tells him
+whether the ten-year history still describes the portfolio the fund holds today.
+
+**Why the model does not ask for a tax rate.** A tax rate needs a base, and the
+two obvious bases disagree. Tax divided by income earned and tax divided by
+total return give the same answer for a bond account and differ by about three
+times for an equity account, because most of an equity return is appreciation
+that was never sold and never taxed. A single year is noisy as well, because
+gains are realised in lumps. The balance has neither problem.
 
 ### Massachusetts rates, for reference
 

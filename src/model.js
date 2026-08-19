@@ -9,8 +9,8 @@
  * browser and into `node --test`. Starting values live in `src/inputs.js`.
  *
  * Symbols, as in plan.md section 2:
- *   P  price            i  inflation        r  trust gross return
- *   f  trust fees       Tt trust tax rate   Tb business tax rate
+ *   P  price            i  inflation        net trust net return
+ *   Tb business tax rate
  *   n  payments         Q  annual premium   g  policy growth rate
  *   w  waiting years    c1 first-year commission   c2 renewal commission
  *   t  year of death
@@ -51,9 +51,7 @@ export function normalize(raw = {}) {
     inflation: num(raw.inflation),
     deliveryPercent: raw.deliveryPercent === undefined ? 1 : num(raw.deliveryPercent),
     trust: {
-      grossReturn: num(trust.grossReturn),
-      fees: num(trust.fees),
-      taxRate: num(trust.taxRate),
+      netReturn: num(trust.netReturn),
     },
     insurance: {
       businessTaxRate: num(ins.businessTaxRate),
@@ -78,28 +76,18 @@ export function normalize(raw = {}) {
 /* ------------------------------------------------------------------ */
 
 /**
- * The three trust rates are constant, so the yearly loop reduces to one rate.
- *   net = r - f - (r * Tt)
+ * The trust uses one rate: how fast the account balance itself grows.
+ *
+ * The model asks for the net rate directly and does not build it from a gross
+ * return, a fee and a tax rate. A tax rate needs a base, and the two obvious
+ * bases disagree: tax divided by income earned and tax divided by total return
+ * give the same answer for a bond account and differ by about three times for
+ * an equity account. The balance has no such ambiguity. It is also what the
+ * funeral establishment receives under 239 CMR 4.09(2), and the trustee can
+ * read it off a statement.
  */
 export function netTrustRate(inputs) {
-  const { grossReturn, fees, taxRate } = inputs.trust;
-  return grossReturn - fees - grossReturn * taxRate;
-}
-
-/**
- * The yearly loop of plan.md section 2.2, written out.
- * `netTrustRate` is the closed form of this loop. `model.test.js` compares them.
- */
-export function trustBalanceByLoop(t, inputs) {
-  const { grossReturn, fees, taxRate } = inputs.trust;
-  let balance = inputs.price;
-  for (let year = 1; year <= t; year += 1) {
-    const earnings = balance * grossReturn;
-    const fee = balance * fees;
-    const tax = earnings * taxRate;
-    balance = balance + earnings - fee - tax;
-  }
-  return balance;
+  return inputs.trust.netReturn;
 }
 
 /** funds(t) = P * (1 + net)^t */
@@ -115,7 +103,7 @@ export function trustFunds(t, inputs) {
  * cost(t) = P * (1 + i)^t * deliveryPercent
  *
  * deliveryPercent of 1 gives the funding gap view: does the money cover the
- * bill? A lower value gives the profit view: what does he keep?
+ * bill? A lower value gives the profit view: what do you keep?
  */
 export function funeralCost(t, inputs) {
   return inputs.price * Math.pow(1 + inputs.inflation, t) * inputs.deliveryPercent;
@@ -229,7 +217,7 @@ export function commissionFund(t, inputs) {
 
 /**
  * The honest comparison against funeral inflation.
- * Both options use P as the base, because P is what he guaranteed.
+ * Both options use P as the base, because P is what you guaranteed.
  */
 export function effectiveAnnualRate(total, price, t) {
   if (!(price > 0) || t < 1) return NaN;
@@ -256,8 +244,8 @@ export function projectYear(t, inputs) {
       funds: trustFundsAtDeath,
       commission: trustCommission,
       total: trustTotal,
-      // 239 CMR 4.08(6)(a) lets him keep a positive margin.
-      // 4.08(6)(b) makes him bear a negative one. He may not bill the estate.
+      // 239 CMR 4.08(6)(a) lets you keep a positive margin.
+      // 4.08(6)(b) makes you bear a negative one. You may not bill the estate.
       margin: trustTotal - cost,
       effectiveRate: effectiveAnnualRate(trustTotal, inputs.price, t),
     },
@@ -328,7 +316,7 @@ function leadChanges(rows) {
 
 /**
  * Statements the dashboard must show, because the inputs make them true.
- * These are not errors. They tell him what he has assumed.
+ * These are not errors. They tell you what you have assumed.
  */
 export function warnings(inputs) {
   const out = [];
@@ -336,14 +324,14 @@ export function warnings(inputs) {
 
   if (ins.benefitMode === 'faceLessUnpaid') {
     out.push(
-      'Face less unpaid premiums is DOUBTFUL. No carrier document confirms it. '
-      + 'Do not use this result until a carrier confirms the feature in writing.',
+      'The "full amount, less unpaid premiums" shape is not confirmed. No carrier '
+      + 'document shows it. Get written confirmation before you use this result.',
     );
   }
   if (ins.payments > 1 && ins.annualPremium * ins.payments <= inputs.price) {
     out.push(
       'The premiums total no more than the face amount. On a multi-pay plan they '
-      + 'usually total more. Read the annual premium off the carrier illustration.',
+      + 'usually total more. Check the annual premium on the carrier illustration.',
     );
   }
   if (ins.benefitMode === 'percentOfFace' && ins.waitingSchedule.length < ins.waitingYears) {
@@ -352,10 +340,11 @@ export function warnings(inputs) {
       + 'The last percent listed applies to the remaining years.',
     );
   }
-  if (inputs.trust.taxRate === 0) {
+  if (inputs.trust.netReturn >= inputs.inflation) {
     out.push(
-      'The trust tax rate is zero. This is correct only for a grantor trust, '
-      + 'where the customer pays the tax. Confirm it with the trustee.',
+      'The trust net return is at or above funeral inflation, so the trust covers '
+      + 'the bill in every year. Confirm that the rate is net of fees and net of '
+      + 'tax, and that it is a rate the trustee actually earned.',
     );
   }
   return out;

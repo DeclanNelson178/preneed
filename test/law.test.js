@@ -20,7 +20,7 @@ const inputs = (overrides = {}) => normalize({
   price: 10000,
   inflation: 0.04,
   deliveryPercent: 1,
-  trust: { grossReturn: 0.055, fees: 0.0075, taxRate: 0.15 },
+  trust: { netReturn: 0.043 },
   insurance: {
     businessTaxRate: 0.3,
     payments: 1,
@@ -65,9 +65,7 @@ test('239 CMR 4.08 — a trust sale pays no commission, in every setting', () =>
 
 test('239 CMR 4.08 — the trust starts with the whole contract price on day one', () => {
   const set = inputs();
-  set.trust.grossReturn = 0;
-  set.trust.fees = 0;
-  set.trust.taxRate = 0;
+  set.trust.netReturn = 0;
   assert.equal(projectYear(1, set).trust.funds, 10000);
 });
 

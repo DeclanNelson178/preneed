@@ -5,7 +5,7 @@
  * This file holds no DOM code. `test/golden.test.js` imports it.
  *
  * The starting values below are working defaults, so the dashboard opens with
- * a complete picture. He replaces them with his own.
+ * a complete picture. You replace them with your own.
  *
  * Field kinds:
  *   currency percent years   a number, with a unit
@@ -21,22 +21,22 @@ export const BENEFIT_MODE_OPTIONS = [
   {
     value: 'fullFace',
     label: 'The full amount',
-    help: 'A level policy. It pays the whole grown amount from day one.',
+    help: 'Level policy. It pays the full grown amount from year 1.',
   },
   {
     value: 'percentOfFace',
     label: 'A part of it',
-    help: 'A graded policy. It pays a percent of the amount in the early years.',
+    help: 'Graded policy. It pays a percent of the amount in the early years.',
   },
   {
     value: 'returnOfPremium',
     label: 'The money back, with interest',
-    help: 'A guaranteed-issue policy. In the early years it returns the premiums paid, with interest.',
+    help: 'Guaranteed-issue policy. In the early years it returns the premiums paid, with interest.',
   },
   {
     value: 'faceLessUnpaid',
     label: 'The full amount, less the premiums not yet paid',
-    help: 'DOUBTFUL. No carrier document confirms this shape.',
+    help: 'Not confirmed. No carrier document shows this shape.',
     advanced: true,
   },
 ];
@@ -61,15 +61,15 @@ export const MAX_WAITING_ROWS = 5;
 /* ------------------------------------------------------------------ */
 
 /**
- * The values that another answer already gives. He never types these.
+ * The values that another answer already gives. You never type these.
  *
- * 1. He pays in full, so the single premium is the price he charges. The
- *    contract price is also the face amount at issue, so the two are one
- *    number. Two fields for one number can disagree. One cannot.
- * 2. He pays in full, so there is no pay period to wait for. The growth
- *    starts at the start.
+ * 1. The customer pays in full, so the single premium is the price you
+ *    charge. The contract price is also the face amount at issue, so the
+ *    two are one number. Two fields for one number can disagree. One cannot.
+ * 2. The customer pays in full, so there is no pay period to wait for. The
+ *    growth starts at the start.
  * 3. A graded policy lists one percent for each early year. The count of
- *    those years is the waiting period. He gives it once.
+ *    those years is the waiting period. You give it once.
  *
  * The function writes into the object it is given and returns it.
  */
@@ -95,14 +95,14 @@ const graded = (v) => v.insurance.benefitMode === 'percentOfFace';
 const moneyBack = (v) => v.insurance.benefitMode === 'returnOfPremium';
 
 /**
- * Three panels, so he never sees all of the fields at once.
+ * Three panels, so you never see all of the fields at once.
  *
  * Each field:
  *   path     dotted path into the input object
  *   id       a note has this in the place of a path
  *   kind     currency | percent | years | choice | toggle | percentRows | note
  *   value    the starting value, in model units (a percent is a fraction)
- *   source   where he gets the real number
+ *   source   where you get the real number
  *   group    an optional heading above the field
  *   showWhen optional test against the current input object
  */
@@ -119,9 +119,7 @@ export const PANELS = [
         value: 9170,
         step: 100,
         min: 0,
-        source:
-          'The guaranteed price on your general price list. It is the whole bill '
-          + 'at death, and it is also the face amount at issue.',
+        source: 'From your general price list. The full bill at death, and the face amount at issue.',
       },
       {
         path: 'inflation',
@@ -131,69 +129,54 @@ export const PANELS = [
         step: 0.1,
         min: -20,
         max: 30,
-        source: 'Your own price history, or the BLS funeral services index.',
+        source: 'From your price history, or the BLS funeral services index.',
       },
     ],
   },
   {
     id: 'trust',
     title: 'The trust option',
-    lede:
-      'The whole price goes to the bank within five business days. You keep '
-      + 'nothing at the sale, and you are paid no commission.',
+    lede: 'The full price goes to the bank in five business days. You get no commission.',
     fields: [
       {
-        path: 'trust.grossReturn',
-        label: 'Trust gross rate of return',
+        path: 'trust.netReturn',
+        label: 'Net rate of return, after fees and after tax',
         kind: 'percent',
-        value: 0.055,
+        value: 0.043,
         step: 0.1,
         min: -20,
         max: 30,
-        source: 'The trustee statement. Ask for the written investment policy and ten years of actual return.',
-      },
-      {
-        path: 'trust.fees',
-        label: 'Trust fees',
-        kind: 'percent',
-        value: 0.0075,
-        step: 0.05,
-        min: 0,
-        max: 10,
-        source: 'The trustee statement. All-in: the trustee fee plus administration.',
-      },
-      {
-        path: 'trust.taxRate',
-        label: 'Trust effective tax rate',
-        kind: 'percent',
-        value: 0.15,
-        step: 1,
-        min: 0,
-        max: 60,
-        source: 'The trustee: tax paid divided by income earned. Enter zero for a grantor trust.',
+        source:
+          'From the trustee. How fast the account balance itself grows. Fees and '
+          + 'tax are already inside this number, so do not subtract them again. '
+          + 'To find it, take ten years of year-end balances on one fully-funded '
+          + 'account with no deposits and no withdrawals, then compute '
+          + '(last balance / first balance) ^ (1 / years) - 1. Under 239 CMR '
+          + '4.09(2) the balance is what you receive at death, so it is the only '
+          + 'trust number this model needs.',
       },
     ],
   },
   {
     id: 'insurance',
     title: 'The insurance option',
-    lede: 'Answer the two questions. The page then asks only what the policy you picked needs.',
+    lede: 'The policy terms, and the commission you keep.',
     fields: [
       /* ---- the policy ---- */
       {
         path: 'insurance.payments',
-        label: 'How does he pay?',
+        label: 'How does the customer pay?',
         kind: 'choice',
         value: 1,
         options: PAY_PLAN_OPTIONS,
         group: 'The policy',
-        source: 'The contract.',
+        source: 'From the contract.',
       },
       {
         id: 'single-premium',
         kind: 'note',
         showWhen: paidInFull,
-        source: 'He pays the price once, so the premium is the price. There is nothing to type.',
+        source: 'One payment. The premium is the contract price, so you do not enter it.',
       },
       {
         path: 'insurance.annualPremium',
@@ -204,8 +187,8 @@ export const PANELS = [
         min: 0,
         showWhen: multiPay,
         source:
-          'The carrier illustration. On a multi-pay plan the premiums total more '
-          + 'than the price. Do not divide the price.',
+          'From the carrier illustration. On a multi-pay plan the premiums total '
+          + 'more than the price. Do not divide the price.',
       },
       {
         id: 'premium-check',
@@ -214,13 +197,13 @@ export const PANELS = [
       },
       {
         path: 'insurance.growthRate',
-        label: 'The amount grows, each year',
+        label: 'The amount grows each year',
         kind: 'percent',
         value: 0.02,
         step: 0.1,
         min: -10,
         max: 20,
-        source: 'The carrier product sheet.',
+        source: 'From the carrier product sheet.',
       },
       {
         path: 'insurance.growthStartsAtPaidUp',
@@ -229,17 +212,15 @@ export const PANELS = [
         value: false,
         options: GROWTH_START_OPTIONS,
         showWhen: multiPay,
-        source:
-          'Ask the carrier: does the amount grow during the pay period, or only '
-          + 'after the policy is paid up? On a 10-year plan this removes ten years of growth.',
+        source: 'From the carrier. On a 10-year plan, this choice can remove ten years of growth.',
       },
       {
         path: 'insurance.benefitMode',
-        label: 'If he dies in the first years, the policy pays',
+        label: 'If the customer dies in the first years, the policy pays',
         kind: 'choice',
         value: 'fullFace',
         options: BENEFIT_MODE_OPTIONS,
-        source: 'The carrier product sheet. One shape only. The four cannot be mixed.',
+        source: 'From the carrier product sheet. Pick one shape only. They cannot be mixed.',
       },
       {
         path: 'insurance.waitingSchedule',
@@ -248,8 +229,8 @@ export const PANELS = [
         value: [0.4, 0.7],
         showWhen: graded,
         source:
-          'The carrier product sheet. Add one year for each year the policy pays a part. '
-          + '40 and 70 is folklore until a carrier document confirms it.',
+          'From the carrier product sheet. Add one row for each year that pays a '
+          + 'part. The 40 and 70 values are placeholders. Replace them.',
       },
       {
         path: 'insurance.waitingYears',
@@ -260,7 +241,7 @@ export const PANELS = [
         min: 0,
         max: 10,
         showWhen: moneyBack,
-        source: 'The carrier product sheet.',
+        source: 'From the carrier product sheet.',
       },
       {
         path: 'insurance.ropInterest',
@@ -271,7 +252,7 @@ export const PANELS = [
         min: 0,
         max: 30,
         showWhen: moneyBack,
-        source: 'The carrier product sheet. Often 5% to 10%. The interest is applied once.',
+        source: 'From the carrier product sheet. Usually 5% to 10%. It is applied once.',
       },
       {
         id: 'full-amount-from',
@@ -281,18 +262,18 @@ export const PANELS = [
       /* ---- what you keep ---- */
       {
         path: 'insurance.firstYearCommission',
-        label: 'You get, on the first payment',
+        label: 'Commission on the first premium',
         kind: 'percent',
         value: 0.12,
         step: 0.5,
         min: 0,
         max: 100,
         group: 'What you keep',
-        source: 'Your carrier commission schedule.',
+        source: 'From your carrier commission schedule.',
       },
       {
         path: 'insurance.renewalCommission',
-        label: 'You get, on the later payments',
+        label: 'Commission on the later premiums',
         kind: 'percent',
         value: 0.03,
         step: 0.5,
@@ -300,8 +281,8 @@ export const PANELS = [
         max: 100,
         showWhen: multiPay,
         source:
-          'Your carrier commission schedule. Set this equal to the first-year rate '
-          + 'for an as-earned schedule. Set it low for a heaped schedule.',
+          'From your carrier commission schedule. It equals the first-year rate on '
+          + 'an as-earned schedule, and is lower on a heaped schedule.',
       },
       {
         path: 'insurance.businessTaxRate',
@@ -311,7 +292,7 @@ export const PANELS = [
         step: 1,
         min: 0,
         max: 60,
-        source: 'Your accountant. The rate depends on how the business is organised.',
+        source: 'From your accountant. The rate depends on how the business is organised.',
       },
       {
         id: 'commission-growth',

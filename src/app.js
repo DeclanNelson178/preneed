@@ -56,8 +56,8 @@ let selectedYear = 10;
 
 /**
  * The premium on a multi-pay illustration is not a function of the price, but
- * it does move with it. We hold the ratio of the last premium he typed, and
- * we keep that ratio when the price changes. He sees that it moved.
+ * it does move with it. We hold the ratio of the last premium you typed, and
+ * we keep that ratio when the price changes. You see that it moved.
  */
 let premiumRatio = ratioOf(values);
 let premiumMoved = false;
@@ -109,11 +109,11 @@ const el = (tag, props = {}, children = []) => {
   return node;
 };
 
-/** The lines the page computes for him. He types none of these. */
+/** The lines the page computes for you. You type none of these. */
 const NOTES = {
   'single-premium': (result) => ({
-    text: `Single premium ${money(result.inputs.insurance.annualPremium)}, `
-      + 'the price you charge. It goes to the carrier once.',
+    text: `Single premium ${money(result.inputs.insurance.annualPremium)}. `
+      + 'It goes to the carrier once.',
   }),
 
   'premium-check': (result) => {
@@ -123,7 +123,7 @@ const NOTES = {
     return {
       text: `${ins.payments} payments of ${money(ins.annualPremium)} come to `
         + `${money(total)}. That is ${ratio.toFixed(2)} times the price.`
-        + (premiumMoved ? ' It moved with the price. Check the illustration.' : ''),
+        + (premiumMoved ? ' The premium moved with the price. Check the illustration.' : ''),
       flag: ratio <= 1,
     };
   },
@@ -208,7 +208,7 @@ function buildChoice(field, wrapper, id) {
 
 /**
  * One percent for each early year. The count of the rows is the length of the
- * waiting period, so he gives that length once, by adding or removing a year.
+ * waiting period, so you give that length once, by adding or removing a year.
  */
 function buildPercentRows(field, wrapper, id, onChange) {
   wrapper.appendChild(el('div', { class: 'field-head' }, [
@@ -551,9 +551,9 @@ function renderPlanChip(result) {
 /* ------------------------------------------------------------------ */
 
 /**
- * Every step of the arithmetic for the selected year, in his own numbers.
+ * Every step of the arithmetic for the selected year, in your own numbers.
  * A step is { parts, value, kind }. A part is a string, or { path, text } for
- * a number he can change. Nothing here computes a result: each value comes
+ * a number you can change. Nothing here computes a result: each value comes
  * from the model, or from one multiplication the reader can check by eye.
  */
 const step = (parts, value, kind = 'step') => ({ parts, value, kind });
@@ -570,15 +570,11 @@ function billSteps(result, row) {
 }
 
 function trustSteps(result, row) {
-  const { price, trust } = result.inputs;
+  const { price } = result.inputs;
   const net = result.netTrustRate;
   return [
     step([link('price', 'Money in at the start')], money(price)),
-    step([link('trust.grossReturn', 'Gross return')], pct(trust.grossReturn)),
-    step([link('trust.fees', 'Less the fees')], MINUS + pct(trust.fees)),
-    step([link('trust.taxRate', `Less tax, at ${pct(trust.taxRate)} of the return`)],
-      MINUS + pct(trust.grossReturn * trust.taxRate)),
-    step(['Net rate, each year'], pct(net), 'sub'),
+    step([link('trust.netReturn', 'Net rate, after fees and tax')], pct(net), 'sub'),
     step([`It grows for ${years(row.year)}`], times(Math.pow(1 + net, row.year))),
     step(['Commission on a trust sale, by 239 CMR 4.08'], money(0)),
     step(['Total to you'], money(row.trust.total), 'total'),
@@ -587,7 +583,7 @@ function trustSteps(result, row) {
   ];
 }
 
-/** The benefit, in the shape he picked. Only the shape he picked. */
+/** The benefit, in the shape you picked. Only the shape you picked. */
 function benefitSteps(result, row) {
   const { price, insurance: ins } = result.inputs;
   const t = row.year;
@@ -825,7 +821,7 @@ function render() {
 /* Wiring                                                              */
 /* ------------------------------------------------------------------ */
 
-/** The premium follows the price, at the ratio he last typed. */
+/** The premium follows the price, at the ratio you last typed. */
 function movePremiumWithPrice() {
   values.insurance.annualPremium = Math.round(values.price * premiumRatio);
   const item = items.get('insurance.annualPremium');

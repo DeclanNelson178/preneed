@@ -15,7 +15,7 @@ import {
   premiumsPaid,
   project,
   projectYear,
-  trustBalanceByLoop,
+
   trustFunds,
   unpaidPremiums,
 } from '../src/model.js';
@@ -36,7 +36,7 @@ const base = (overrides = {}) => normalize({
   price: 10000,
   inflation: 0.04,
   deliveryPercent: 1,
-  trust: { grossReturn: 0.055, fees: 0.0075, taxRate: 0.15 },
+  trust: { netReturn: 0.043 },
   insurance: {
     businessTaxRate: 0.3,
     payments: 1,
@@ -69,31 +69,26 @@ const withTrust = (patch) => {
 /* The trust                                                           */
 /* ------------------------------------------------------------------ */
 
-test('the year-by-year trust loop equals the closed form', () => {
-  const inputs = base();
-  for (let t = 0; t <= 30; t += 1) {
-    near(trustBalanceByLoop(t, inputs), trustFunds(t, inputs), 1e-7, `year ${t}:`);
-  }
+test('the trust uses the entered net rate, with nothing subtracted from it', () => {
+  // Fees and tax are already inside the number the user gives. The model must
+  // not take them off a second time.
+  near(netTrustRate(withTrust({ netReturn: 0.043 })), 0.043);
+  near(netTrustRate(withTrust({ netReturn: 0 })), 0);
+  near(netTrustRate(withTrust({ netReturn: -0.02 })), -0.02);
 });
 
-test('a zero return and a zero fee hold the balance flat', () => {
-  const inputs = withTrust({ grossReturn: 0, fees: 0, taxRate: 0.15 });
-  assert.equal(netTrustRate(inputs), 0);
+test('the balance compounds each year, it is not simple interest', () => {
+  const inputs = withTrust({ netReturn: 0.043 });
   for (let t = 1; t <= 30; t += 1) {
-    near(trustFunds(t, inputs), 10000, 1e-9, `year ${t}:`);
-    near(trustBalanceByLoop(t, inputs), 10000, 1e-9, `year ${t}:`);
+    near(trustFunds(t, inputs), trustFunds(t - 1, inputs) * 1.043, 1e-7, `year ${t}:`);
   }
+  const simple = 10000 * (1 + 30 * 0.043);
+  assert.ok(trustFunds(30, inputs) > simple + 1000, 'year 30 must beat simple interest');
 });
 
-test('a zero tax rate gives net = r - f', () => {
-  const inputs = withTrust({ grossReturn: 0.06, fees: 0.01, taxRate: 0 });
-  near(netTrustRate(inputs), 0.05);
-});
-
-test('the trust tax is charged on earnings, not on the balance', () => {
-  const inputs = withTrust({ grossReturn: 0.06, fees: 0, taxRate: 0.25 });
-  // net = 0.06 - 0 - (0.06 * 0.25) = 0.045
-  near(netTrustRate(inputs), 0.045);
+test('a zero net return holds the balance flat', () => {
+  const inputs = withTrust({ netReturn: 0 });
+  for (let t = 1; t <= 30; t += 1) near(trustFunds(t, inputs), 10000, 1e-9, `year ${t}:`);
 });
 
 /* ------------------------------------------------------------------ */
@@ -373,7 +368,7 @@ test('the margin falls as funeral inflation rises', () => {
 
 test('the margin rises as the trust return rises', () => {
   const low = base();
-  const high = withTrust({ grossReturn: 0.08 });
+  const high = withTrust({ netReturn: 0.08 });
   for (let t = 1; t <= 30; t += 1) {
     assert.ok(
       projectYear(t, high).trust.margin > projectYear(t, low).trust.margin,
@@ -411,5 +406,5 @@ test('the summary reports the first loss year for each option', () => {
 test('a doubtful benefit mode raises a warning', () => {
   const inputs = withInsurance({ benefitMode: 'faceLessUnpaid' });
   const { warnings } = project(inputs);
-  assert.ok(warnings.some((line) => line.includes('DOUBTFUL')));
+  assert.ok(warnings.some((line) => line.includes('not confirmed')));
 });
