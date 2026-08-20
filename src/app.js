@@ -13,7 +13,7 @@ import {
   project, growthYears, waitingPercent, commissionPayment,
 } from './model.js';
 import {
-  BASE_PANELS, CONTRACT_PRESETS, MAX_WAITING_ROWS,
+  BASE_PANELS, BENEFIT_MODE_OPTIONS, CONTRACT_PRESETS, MAX_WAITING_ROWS,
   defaults, deriveValues, getPath, setPath, makeContract,
   nextContractId, nextContractName, panelsFor,
 } from './inputs.js';
@@ -153,10 +153,16 @@ function load() {
       while (seen.has(id)) id = `c${Number(id.slice(1)) + MAX_CONTRACTS}`;
       seen.add(id);
       const fresh = makeContract(id, `Contract ${index + 1}`);
+      const startingMode = fresh.benefitMode;
       Object.keys(fresh).forEach((key) => {
         if (raw[key] !== undefined) fresh[key] = raw[key];
       });
       fresh.id = id;
+      // A saved shape the picker no longer offers would leave the question
+      // with no answer, so it falls back to the starting shape.
+      if (!BENEFIT_MODE_OPTIONS.some((option) => option.value === fresh.benefitMode)) {
+        fresh.benefitMode = startingMode;
+      }
       return fresh;
     });
   }

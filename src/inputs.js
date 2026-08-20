@@ -42,12 +42,6 @@ export const BENEFIT_MODE_OPTIONS = [
     label: 'The money back, with interest',
     help: 'Guaranteed-issue policy. In the early years it returns the premiums paid, with interest.',
   },
-  {
-    value: 'faceLessUnpaid',
-    label: 'The full amount, less the premiums not yet paid',
-    help: 'Not confirmed. No carrier document shows this shape.',
-    advanced: true,
-  },
 ];
 
 export const PAY_PLAN_OPTIONS = [
