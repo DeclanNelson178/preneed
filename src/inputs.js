@@ -219,7 +219,7 @@ export const CONTRACT_FIELDS = [
   },
   {
     key: 'growthRate',
-    label: 'The amount grows each year',
+    label: 'Face amount growth rate',
     kind: 'percent',
     value: 0.02,
     step: 0.1,

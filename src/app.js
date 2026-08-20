@@ -226,8 +226,8 @@ const NOTES = {
   }),
 
   'commission-growth': (result) => ({
-    text: `What is left grows at ${pct(result.netTrustRate)} each year. `
-      + 'This is the same net rate as the trust.',
+    text: 'Your commission, after tax, is invested. It grows at '
+      + `${pct(result.netTrustRate)} each year, the same net rate as the trust.`,
   }),
 };
 
