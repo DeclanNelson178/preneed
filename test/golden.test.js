@@ -52,28 +52,68 @@ test('golden — the starting values in src/inputs.js', () => {
     [30, 35344.34, 32426.39, -2917.95, 16610.19, 2611.52, 19221.71, -16122.63],
   ]);
 
-  assert.deepEqual(result.summary, {
-    trustFirstLossYear: 1,
-    insuranceFirstLossYear: 4,
-    trustLossYears: 30,
-    insuranceLossYears: 27,
-    leadChanges: [{ year: 4, leader: 'trust' }],
-    leaderAtStart: 'insurance',
-    leaderAtEnd: 'trust',
+  const { summary } = result;
+
+  assert.deepEqual(summary.options, [
+    { key: 'trust', kind: 'trust', name: 'Trust' },
+    { key: 'c1', kind: 'insurance', name: 'Single pay, level' },
+  ]);
+
+  assert.deepEqual(summary.byOption.trust, {
+    key: 'trust',
+    kind: 'trust',
+    name: 'Trust',
+    firstLossYear: 1,
+    lossYears: 30,
+    winYears: 27,
+    outrightWinYears: 27,
+    firstWinYear: 4,
+    bestYear: 1,
+    worstYear: 30,
   });
+
+  assert.deepEqual(summary.byOption.c1, {
+    key: 'c1',
+    kind: 'insurance',
+    name: 'Single pay, level',
+    firstLossYear: 4,
+    lossYears: 27,
+    winYears: 3,
+    outrightWinYears: 3,
+    firstWinYear: 1,
+    bestYear: 1,
+    worstYear: 30,
+  });
+
+  assert.deepEqual(summary.runs.map((run) => [run.key, run.from, run.to]), [
+    ['c1', 1, 3],
+    ['trust', 4, 30],
+  ]);
+
+  assert.deepEqual(summary.leadChanges, [{ year: 4, leader: 'trust' }]);
+  assert.equal(summary.leaderAtStart, 'c1');
+  assert.equal(summary.leaderAtEnd, 'trust');
+
+  // The one-policy reading, unchanged.
+  assert.equal(summary.trustFirstLossYear, 1);
+  assert.equal(summary.trustLossYears, 30);
+  assert.equal(summary.insuranceFirstLossYear, 4);
+  assert.equal(summary.insuranceLossYears, 27);
 });
 
 test('golden — a 10-pay graded policy, growth held to paid-up, heaped commission, 60% cost to deliver', () => {
   const raw = defaults();
   raw.deliveryPercent = 0.6;
-  raw.insurance.payments = 10;
-  raw.insurance.annualPremium = 1055;
-  raw.insurance.growthStartsAtPaidUp = true;
-  raw.insurance.benefitMode = 'percentOfFace';
-  raw.insurance.waitingYears = 2;
-  raw.insurance.waitingSchedule = [0.4, 0.7];
-  raw.insurance.firstYearCommission = 0.2;
-  raw.insurance.renewalCommission = 0.02;
+  Object.assign(raw.contracts[0], {
+    payments: 10,
+    annualPremium: 1055,
+    growthStartsAtPaidUp: true,
+    benefitMode: 'percentOfFace',
+    waitingYears: 2,
+    waitingSchedule: [0.4, 0.7],
+    firstYearCommission: 0.2,
+    renewalCommission: 0.02,
+  });
 
   const result = project(raw);
 
@@ -87,8 +127,8 @@ test('golden — a 10-pay graded policy, growth held to paid-up, heaped commissi
     [30, 21206.6, 32426.39, 11219.79, 13626.14, 868.05, 14494.18, -6712.42],
   ]);
 
-  assert.equal(result.summary.trustFirstLossYear, null);
-  assert.equal(result.summary.insuranceFirstLossYear, 1);
+  assert.equal(result.summary.byOption.trust.firstLossYear, null);
+  assert.equal(result.summary.byOption.c1.firstLossYear, 1);
 });
 
 test('golden — every starting value in src/inputs.js', () => {
@@ -100,18 +140,22 @@ test('golden — every starting value in src/inputs.js', () => {
     trust: {
       netReturn: 0.043,
     },
-    insurance: {
-      payments: 1,
-      annualPremium: 9170,
-      growthRate: 0.02,
-      growthStartsAtPaidUp: false,
-      benefitMode: 'fullFace',
-      waitingYears: 2,
-      waitingSchedule: [0.4, 0.7],
-      ropInterest: 0.07,
-      businessTaxRate: 0.3,
-      firstYearCommission: 0.12,
-      renewalCommission: 0.03,
-    },
+    contracts: [
+      {
+        id: 'c1',
+        name: 'Single pay, level',
+        payments: 1,
+        annualPremium: 9170,
+        growthRate: 0.02,
+        growthStartsAtPaidUp: false,
+        benefitMode: 'fullFace',
+        waitingYears: 2,
+        waitingSchedule: [0.4, 0.7],
+        ropInterest: 0.07,
+        businessTaxRate: 0.3,
+        firstYearCommission: 0.12,
+        renewalCommission: 0.03,
+      },
+    ],
   });
 });

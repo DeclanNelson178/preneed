@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Trust or insurance — a Massachusetts pre-need contract</title>
-<meta name="description" content="Compare trust funding against insurance funding for a Massachusetts cost-protected pre-need funeral contract, in every year of death.">
+<meta name="description" content="Compare trust funding against any number of insurance contracts, all against funeral inflation, for a Massachusetts cost-protected pre-need funeral contract, in every year of death.">
 <meta name="color-scheme" content="light dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,14 +29,27 @@
   --rule: #d4d9de;
   --rule-strong: #b3bbc3;
 
-  --trust: #2f5ea8;
-  --ins: #b96a16;
+  /* ---- the series palette ----
+     Seven categorical slots: the trust takes slot 1, an insurance contract
+     takes one of the six that follow. The order is not cosmetic. It was
+     validated as a set against both surfaces — every adjacent pair clears the
+     colour-blind separation floor and the normal-vision floor in light and in
+     dark. Three light slots sit under 3:1 against the surface, which is why
+     every figure ships direct labels, a legend and a table of its numbers.
+     Do not insert, reorder or extend these without re-validating. */
+  --s1: #2a78d6;   /* blue    — the trust */
+  --s2: #eb6834;   /* orange  */
+  --s3: #1baf7a;   /* aqua    */
+  --s4: #4a3aa7;   /* violet  */
+  --s5: #eda100;   /* yellow  */
+  --s6: #e87ba4;   /* magenta */
+  --s7: #008300;   /* green   */
+
   --loss: #d03b3b;
   --gain: #006300;
   --loss-wash: rgba(208, 59, 59, 0.10);
   --loss-wash-strong: rgba(208, 59, 59, 0.16);
-  --trust-wash: rgba(47, 94, 168, 0.10);
-  --ins-wash: rgba(185, 106, 22, 0.12);
+  --focus-wash: rgba(42, 120, 214, 0.16);
 
   --radius: 10px;
   --shadow: 0 1px 2px rgba(20, 24, 28, 0.06), 0 8px 24px rgba(20, 24, 28, 0.05);
@@ -53,14 +66,21 @@
     --rule: #262c32;
     --rule-strong: #3b444c;
 
-    --trust: #5b92e0;
-    --ins: #c87c2c;
+    /* The same seven hues, stepped for the dark surface and validated against
+       it. Not a flip of the light column. */
+    --s1: #3987e5;
+    --s2: #d95926;
+    --s3: #199e70;
+    --s4: #9085e9;
+    --s5: #c98500;
+    --s6: #d55181;
+    --s7: #008300;
+
     --loss: #d03b3b;
     --gain: #0ca30c;
     --loss-wash: rgba(208, 59, 59, 0.16);
     --loss-wash-strong: rgba(208, 59, 59, 0.22);
-    --trust-wash: rgba(91, 146, 224, 0.14);
-    --ins-wash: rgba(200, 124, 44, 0.16);
+    --focus-wash: rgba(57, 135, 229, 0.22);
 
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
   }
@@ -76,14 +96,19 @@
   --rule: #262c32;
   --rule-strong: #3b444c;
 
-  --trust: #5b92e0;
-  --ins: #c87c2c;
+  --s1: #3987e5;
+  --s2: #d95926;
+  --s3: #199e70;
+  --s4: #9085e9;
+  --s5: #c98500;
+  --s6: #d55181;
+  --s7: #008300;
+
   --loss: #d03b3b;
   --gain: #0ca30c;
   --loss-wash: rgba(208, 59, 59, 0.16);
   --loss-wash-strong: rgba(208, 59, 59, 0.22);
-  --trust-wash: rgba(91, 146, 224, 0.14);
-  --ins-wash: rgba(200, 124, 44, 0.16);
+  --focus-wash: rgba(57, 135, 229, 0.22);
 
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.3);
 }
@@ -266,15 +291,43 @@ a { color: inherit; }
   font-size: 1.0625rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
 }
+.panel > summary h2 .panel-name { min-width: 0; overflow-wrap: anywhere; }
 .panel > summary h2::after {
   content: '+';
   font-family: var(--font-mono);
   font-weight: 400;
   font-size: 1.1rem;
   color: var(--ink-muted);
+  margin-left: auto;
+  padding-left: 6px;
+}
+
+/* Duplicate and Remove. They sit in the summary, so they stop the click that
+   would otherwise open or close the panel. */
+.panel-tools { display: flex; gap: 6px; flex: none; }
+.panel-tool {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border: 1px solid var(--rule-strong);
+  border-radius: 999px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+.panel-tool:hover { color: var(--ink); border-color: var(--ink-muted); }
+
+/* The row that adds a contract. */
+.add-contract {
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: grid;
+  gap: 8px;
 }
 .panel[open] > summary h2::after { content: '–'; }
 
@@ -324,7 +377,7 @@ a { color: inherit; }
   background: var(--surface-2);
   overflow: hidden;
 }
-.control:focus-within { border-color: var(--ink); box-shadow: 0 0 0 3px var(--trust-wash); }
+.control:focus-within { border-color: var(--ink); box-shadow: 0 0 0 3px var(--focus-wash); }
 
 .control .affix {
   font-family: var(--font-mono);
@@ -366,7 +419,7 @@ a { color: inherit; }
   font-size: 0.875rem;
   color: var(--ink-2);
 }
-.switch input { width: 18px; height: 18px; accent-color: var(--trust); cursor: pointer; }
+.switch input { width: 18px; height: 18px; accent-color: var(--s1); cursor: pointer; }
 
 
 /* ==================================================================
@@ -404,14 +457,8 @@ a { color: inherit; }
 .rail-svg { display: block; width: 100%; cursor: ew-resize; }
 .rail-svg text { font-family: var(--font-ui); }
 .rail-tick { font-size: 10px; fill: var(--ink-muted); font-variant-numeric: tabular-nums; }
-/* A halo keeps the note legible where the handle crosses it. */
-.rail-note {
-  font-size: 11px;
-  fill: var(--ink-2);
-  stroke: var(--plane);
-  stroke-width: 3px;
-  paint-order: stroke;
-}
+/* The option name, in the gutter to the left of its band. */
+.rail-name { font-size: 11px; fill: var(--ink-2); }
 
 @media (max-width: 560px) { .rail-hint { display: none; } }
 
@@ -428,29 +475,36 @@ a { color: inherit; }
 }
 .verdict-sub { font-size: 0.9375rem; color: var(--ink-2); }
 
-/* --- the two option cards --- */
-.cards { display: grid; gap: 16px; }
-@media (min-width: 640px) { .cards { grid-template-columns: 1fr 1fr; } }
+/* --- one card per option --- */
+.cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }
 
 .card {
   background: var(--surface);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--rule-strong);
+  border-top: 3px solid var(--card-accent, var(--rule-strong));
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 16px 18px 6px;
   display: grid;
   gap: 12px;
   align-content: start;
+  min-width: 0;
 }
-.card[data-option="trust"] { border-top-color: var(--trust); }
-.card[data-option="insurance"] { border-top-color: var(--ins); }
+/* The leader is marked by a ring, not by colour alone: the accent already
+   carries the option's identity and cannot also carry its rank. */
+.card[data-lead="true"] { box-shadow: var(--shadow), inset 0 0 0 1px var(--rule-strong); }
 
 .card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.card-head h3 { font-size: 1.0625rem; }
-.swatch { width: 10px; height: 10px; border-radius: 2px; flex: none; }
-.card[data-option="trust"] .swatch { background: var(--trust); }
-.card[data-option="insurance"] .swatch { background: var(--ins); }
+.card-head h3 { font-size: 1.0625rem; overflow-wrap: anywhere; }
+.swatch { width: 10px; height: 10px; border-radius: 2px; flex: none; display: inline-block; }
+
+.chip--lead {
+  border-style: solid;
+  border-color: var(--ink);
+  color: var(--ink);
+  font-weight: 600;
+  cursor: help;
+}
 
 .big { display: grid; gap: 2px; }
 .big-value {
@@ -529,6 +583,16 @@ a { color: inherit; }
 .viz-axis-title { font-size: 11px; fill: var(--ink-muted); }
 .viz-direct-label { font-size: 12px; fill: var(--ink-2); }
 .viz-loss-flag { font-size: 11px; fill: var(--loss); letter-spacing: 0.06em; }
+/* On the winner strip the name sits on its own colour, so it wears a halo of
+   the surface rather than a lighter or darker ink. */
+.viz-strip-label {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--ink);
+  stroke: var(--surface);
+  stroke-width: 3px;
+  paint-order: stroke;
+}
 
 .viz-tip {
   position: absolute;
@@ -579,7 +643,9 @@ details.numbers > summary:hover { color: var(--ink); }
 table { border-collapse: collapse; width: 100%; font-size: 0.8125rem; }
 thead th {
   position: sticky;
-  top: 0;
+  /* Clear of the band row above, whose height is fixed below so this offset
+     is true by construction rather than by guess. */
+  top: 28px;
   background: var(--surface-2);
   border-bottom: 1px solid var(--rule-strong);
   text-align: right;
@@ -592,6 +658,25 @@ thead th {
   white-space: nowrap;
   z-index: 2;
 }
+/* A table with no band row has nothing above the header to clear. */
+table.no-band thead th { top: 0; }
+
+/* The band row names the option each group of columns belongs to. */
+.band-row th {
+  top: 0;
+  height: 28px;
+  line-height: 28px;
+  padding: 0 10px;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 0.75rem;
+  color: var(--ink);
+  border-bottom: 1px solid var(--rule);
+}
+.band-row th .swatch { margin-right: 6px; vertical-align: baseline; }
+.band-row th.band--blank { color: transparent; }
+
 /* The year column stays put while the rest scrolls sideways on a phone. */
 thead th:first-child { text-align: left; left: 0; z-index: 3; }
 tbody td {
@@ -613,7 +698,45 @@ tbody td:first-child {
 }
 tbody tr[data-selected="true"] td { background: var(--surface-2); color: var(--ink); }
 tbody td[data-sign="loss"] { color: var(--loss); }
-tbody .rule-col { border-left: 1px solid var(--rule); }
+tbody td[data-sign="gain"] { color: var(--gain); }
+tbody td.strong-col { color: var(--ink); font-weight: 600; font-variant-numeric: normal; }
+tbody .rule-col, thead .rule-col { border-left: 1px solid var(--rule); }
+tbody tr:hover td { background: var(--surface-2); }
+tbody tr[data-year] { cursor: pointer; }
+
+/* --- the standings --- */
+.standings-table tbody td.name-cell {
+  text-align: left;
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-variant-numeric: normal;
+  white-space: nowrap;
+}
+.standings-table .rank {
+  font-family: var(--font-mono);
+  color: var(--ink-muted);
+  margin-right: 9px;
+}
+.standings-table tbody td.name-cell .swatch { margin-right: 7px; }
+.standings-table tbody tr[data-rank="1"] td { color: var(--ink); font-weight: 600; }
+.standings-table tbody tr[data-rank="1"] td[data-sign="loss"] { color: var(--loss); }
+.standings-table tbody tr { cursor: default; }
+.standings-table tbody tr:hover td { background: none; }
+
+/* --- the run list under the winner strip --- */
+.runs { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.8125rem; color: var(--ink-muted); }
+.runs .run { display: inline-flex; align-items: center; gap: 7px; }
+.runs .run b { font-weight: 600; color: var(--ink); }
+
+/* --- the view switch over the full table --- */
+.table-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.view-switch { display: flex; flex-wrap: wrap; gap: 6px; }
+.view-switch .row-button[data-on="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  border-style: solid;
+  color: var(--surface);
+}
 
 .block {
   background: var(--surface);
@@ -731,10 +854,9 @@ tbody .rule-col { border-left: 1px solid var(--rule); }
    ================================================================== */
 .explain-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 
-.xcols { display: grid; gap: 22px; }
-@media (min-width: 780px) {
-  .xcols { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 26px; }
-}
+/* One column for the bill, one for the trust, one for each contract. */
+.xcols { display: grid; gap: 22px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); }
+@media (min-width: 780px) { .xcols { gap: 26px; } }
 
 .xcol { display: grid; gap: 6px; align-content: start; min-width: 0; }
 .xcol h3 {
@@ -746,6 +868,10 @@ tbody .rule-col { border-left: 1px solid var(--rule); }
   color: var(--ink-muted);
   border-bottom: 1px solid var(--rule-strong);
   padding-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow-wrap: anywhere;
 }
 
 .xrow {
@@ -873,7 +999,8 @@ python3 -m http.server 8000</pre>
       <p class="cite">Your numbers</p>
       <button type="button" class="reset" id="reset">Reset</button>
     </div>
-    <!-- The three panels are built from src/inputs.js. -->
+    <!-- The panels are built from src/inputs.js: the funeral, the trust,
+         then one for each insurance contract, then the row that adds one. -->
   </form>
 
   <section class="results" id="results" aria-label="Results">
@@ -888,41 +1015,17 @@ python3 -m http.server 8000</pre>
 
     <div class="verdict" id="verdict"></div>
 
-    <div class="cards">
-      <article class="card" data-option="trust">
-        <div class="card-head">
-          <span class="swatch" aria-hidden="true"></span>
-          <h3>Trust</h3>
-          <span class="chip chip--choice" title="A trust sale pays you no commission.">no commission</span>
-        </div>
-        <div class="big">
-          <span class="big-value" id="trust-margin">—</span>
-          <span class="big-label"><b id="trust-margin-word">margin</b> in year <span id="trust-margin-year">1</span></span>
-        </div>
-        <dl>
-          <div><dt>Total to you</dt><dd id="trust-total">—</dd></div>
-          <div><dt>Cost of the funeral</dt><dd id="trust-cost">—</dd></div>
-        </dl>
-      </article>
+    <!-- One card per option. Built in src/app.js from the option list. -->
+    <div class="cards" id="cards"></div>
 
-      <article class="card" data-option="insurance">
-        <div class="card-head">
-          <span class="swatch" aria-hidden="true"></span>
-          <h3>Insurance</h3>
-          <span class="chip chip--choice" id="ins-plan">paid in full</span>
-        </div>
-        <div class="big">
-          <span class="big-value" id="ins-margin">—</span>
-          <span class="big-label"><b id="ins-margin-word">margin</b> in year <span id="ins-margin-year">1</span></span>
-        </div>
-        <dl>
-          <div><dt>Death benefit</dt><dd id="ins-benefit">—</dd></div>
-          <div><dt>Commission fund, after tax</dt><dd id="ins-commission">—</dd></div>
-          <div><dt>Total to you</dt><dd id="ins-total">—</dd></div>
-          <div><dt>Cost of the funeral</dt><dd id="ins-cost">—</dd></div>
-        </dl>
-      </article>
-    </div>
+    <section class="block" id="standings">
+      <div class="explain-head">
+        <h2>The standings</h2>
+        <span class="cite" id="standings-year">Year 10</span>
+      </div>
+      <p id="standings-note"></p>
+      <div class="table-wrap"></div>
+    </section>
 
     <section class="block explain" id="explain">
       <div class="explain-head">
@@ -967,9 +1070,31 @@ python3 -m http.server 8000</pre>
       </details>
     </figure>
 
+    <figure class="figure" id="fig-winner">
+      <figcaption>
+        <h3>Who wins each year, and by how much</h3>
+        <p>
+          The strip names the option that leaves the most money in your hand in
+          each year of death. The bar under it is how far ahead of the
+          runner-up that option is. A tall bar is a real difference. A bar you
+          can barely see is a coin toss.
+        </p>
+      </figcaption>
+      <div class="legend"></div>
+      <div class="viz-host"></div>
+      <ul class="runs" id="winner-runs"></ul>
+      <details class="numbers">
+        <summary>Show the numbers</summary>
+        <div class="table-wrap"></div>
+      </details>
+    </figure>
+
     <section class="block" id="full-table">
-      <h2>Every year, side by side</h2>
-      <p>Year 1 to year 30. The selected year is marked.</p>
+      <div class="table-head">
+        <h2>Every year, side by side</h2>
+        <div class="view-switch" id="table-view"></div>
+      </div>
+      <p>Year 1 to year 30. Click a row to move the year. The selected year is marked.</p>
       <div class="table-wrap"></div>
     </section>
 

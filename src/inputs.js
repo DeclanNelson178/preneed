@@ -9,13 +9,22 @@
  *
  * Field kinds:
  *   currency percent years   a number, with a unit
+ *   text                     a line of words. The contract name.
  *   choice                   a row of buttons. One answer.
  *   percentRows              one percent for each early year. The count of the
  *                            rows gives the length of the waiting period.
  *   note                     a computed line. It holds no value of its own.
  *
  * A note has an `id` and no `path`, because the user cannot type into it.
+ *
+ * The insurance fields are written once, as CONTRACT_FIELDS, with a `key`
+ * relative to one contract. `contractFields(index)` stamps them out against
+ * `contracts.<index>.<key>` for each contract in the comparison.
  */
+
+import { MAX_CONTRACTS } from './model.js';
+
+export { MAX_CONTRACTS };
 
 export const BENEFIT_MODE_OPTIONS = [
   {
@@ -74,14 +83,15 @@ export const MAX_WAITING_ROWS = 5;
  * The function writes into the object it is given and returns it.
  */
 export function deriveValues(values) {
-  const ins = values.insurance;
-  if (ins.payments === 1) {
-    ins.annualPremium = values.price;
-    ins.growthStartsAtPaidUp = false;
-  }
-  if (ins.benefitMode === 'percentOfFace') {
-    ins.waitingYears = ins.waitingSchedule.length;
-  }
+  values.contracts.forEach((ins) => {
+    if (ins.payments === 1) {
+      ins.annualPremium = values.price;
+      ins.growthStartsAtPaidUp = false;
+    }
+    if (ins.benefitMode === 'percentOfFace') {
+      ins.waitingYears = ins.waitingSchedule.length;
+    }
+  });
   return values;
 }
 
@@ -89,28 +99,29 @@ export function deriveValues(values) {
 /* The panels                                                          */
 /* ------------------------------------------------------------------ */
 
-const paidInFull = (v) => v.insurance.payments === 1;
-const multiPay = (v) => v.insurance.payments > 1;
-const graded = (v) => v.insurance.benefitMode === 'percentOfFace';
-const moneyBack = (v) => v.insurance.benefitMode === 'returnOfPremium';
+/* A contract-level test. It is given the one contract the field belongs to. */
+const paidInFull = (c) => c.payments === 1;
+const multiPay = (c) => c.payments > 1;
+const graded = (c) => c.benefitMode === 'percentOfFace';
+const moneyBack = (c) => c.benefitMode === 'returnOfPremium';
 
 /**
- * Three panels, so you never see all of the fields at once.
+ * The two fixed panels: the bill everyone is measured against, and the trust.
  *
  * Each field:
  *   path     dotted path into the input object
  *   id       a note has this in the place of a path
- *   kind     currency | percent | years | choice | toggle | percentRows | note
+ *   kind     currency | percent | years | text | choice | percentRows | note
  *   value    the starting value, in model units (a percent is a fraction)
  *   source   where you get the real number
  *   group    an optional heading above the field
  *   showWhen optional test against the current input object
  */
-export const PANELS = [
+export const BASE_PANELS = [
   {
     id: 'contract',
-    title: 'The contract',
-    lede: 'The price you guaranteed, and how fast funeral prices rise.',
+    title: 'The funeral',
+    lede: 'The price you guaranteed, and how fast funeral prices rise. Every option is measured against this bill.',
     fields: [
       {
         path: 'price',
@@ -157,154 +168,206 @@ export const PANELS = [
       },
     ],
   },
+];
+
+/**
+ * One insurance contract. Written once, stamped out for each contract in the
+ * comparison. `key` is the path inside the contract; `showWhen` is given that
+ * contract, not the whole input object.
+ */
+export const CONTRACT_FIELDS = [
   {
-    id: 'insurance',
-    title: 'The insurance option',
-    lede: 'The policy terms, and the commission you keep.',
-    fields: [
-      /* ---- the policy ---- */
-      {
-        path: 'insurance.payments',
-        label: 'How does the customer pay?',
-        kind: 'choice',
-        value: 1,
-        options: PAY_PLAN_OPTIONS,
-        group: 'The policy',
-        source: 'From the contract.',
-      },
-      {
-        id: 'single-premium',
-        kind: 'note',
-        showWhen: paidInFull,
-        source: 'One payment. The premium is the contract price, so you do not enter it.',
-      },
-      {
-        path: 'insurance.annualPremium',
-        label: 'Premium each year',
-        kind: 'currency',
-        value: 9170,
-        step: 100,
-        min: 0,
-        showWhen: multiPay,
-        source:
-          'From the carrier illustration. On a multi-pay plan the premiums total '
-          + 'more than the price. Do not divide the price.',
-      },
-      {
-        id: 'premium-check',
-        kind: 'note',
-        showWhen: multiPay,
-      },
-      {
-        path: 'insurance.growthRate',
-        label: 'The amount grows each year',
-        kind: 'percent',
-        value: 0.02,
-        step: 0.1,
-        min: -10,
-        max: 20,
-        source: 'From the carrier product sheet.',
-      },
-      {
-        path: 'insurance.growthStartsAtPaidUp',
-        label: 'The growth starts',
-        kind: 'choice',
-        value: false,
-        options: GROWTH_START_OPTIONS,
-        showWhen: multiPay,
-        source: 'From the carrier. On a 10-year plan, this choice can remove ten years of growth.',
-      },
-      {
-        path: 'insurance.benefitMode',
-        label: 'If the customer dies in the first years, the policy pays',
-        kind: 'choice',
-        value: 'fullFace',
-        options: BENEFIT_MODE_OPTIONS,
-        source: 'From the carrier product sheet. Pick one shape only. They cannot be mixed.',
-      },
-      {
-        path: 'insurance.waitingSchedule',
-        label: 'What it pays in each early year',
-        kind: 'percentRows',
-        value: [0.4, 0.7],
-        showWhen: graded,
-        source:
-          'From the carrier product sheet. Add one row for each year that pays a '
-          + 'part. The 40 and 70 values are placeholders. Replace them.',
-      },
-      {
-        path: 'insurance.waitingYears',
-        label: 'The money-back period lasts',
-        kind: 'years',
-        value: 2,
-        step: 1,
-        min: 0,
-        max: 10,
-        showWhen: moneyBack,
-        source: 'From the carrier product sheet.',
-      },
-      {
-        path: 'insurance.ropInterest',
-        label: 'Interest added to the money paid back',
-        kind: 'percent',
-        value: 0.07,
-        step: 0.5,
-        min: 0,
-        max: 30,
-        showWhen: moneyBack,
-        source: 'From the carrier product sheet. Usually 5% to 10%. It is applied once.',
-      },
-      {
-        id: 'full-amount-from',
-        kind: 'note',
-        showWhen: (v) => graded(v) || moneyBack(v),
-      },
-      /* ---- what you keep ---- */
-      {
-        path: 'insurance.firstYearCommission',
-        label: 'Commission on the first premium',
-        kind: 'percent',
-        value: 0.12,
-        step: 0.5,
-        min: 0,
-        max: 100,
-        group: 'What you keep',
-        source: 'From your carrier commission schedule.',
-      },
-      {
-        path: 'insurance.renewalCommission',
-        label: 'Commission on the later premiums',
-        kind: 'percent',
-        value: 0.03,
-        step: 0.5,
-        min: 0,
-        max: 100,
-        showWhen: multiPay,
-        source:
-          'From your carrier commission schedule. It equals the first-year rate on '
-          + 'an as-earned schedule, and is lower on a heaped schedule.',
-      },
-      {
-        path: 'insurance.businessTaxRate',
-        label: 'Your business income tax rate',
-        kind: 'percent',
-        value: 0.3,
-        step: 1,
-        min: 0,
-        max: 60,
-        source: 'From your accountant. The rate depends on how the business is organised.',
-      },
-      {
-        id: 'commission-growth',
-        kind: 'note',
-      },
-    ],
+    key: 'name',
+    label: 'Name this contract',
+    kind: 'text',
+    value: '',
+    maxLength: 32,
+    source: 'The carrier and product, so you can tell the lines apart on the charts.',
+  },
+  /* ---- the policy ---- */
+  {
+    key: 'payments',
+    label: 'How does the customer pay?',
+    kind: 'choice',
+    value: 1,
+    options: PAY_PLAN_OPTIONS,
+    group: 'The policy',
+    source: 'From the contract.',
+  },
+  {
+    id: 'single-premium',
+    kind: 'note',
+    showWhen: paidInFull,
+    source: 'One payment. The premium is the contract price, so you do not enter it.',
+  },
+  {
+    key: 'annualPremium',
+    label: 'Premium each year',
+    kind: 'currency',
+    value: 9170,
+    step: 100,
+    min: 0,
+    showWhen: multiPay,
+    source:
+      'From the carrier illustration. On a multi-pay plan the premiums total '
+      + 'more than the price. Do not divide the price.',
+  },
+  {
+    id: 'premium-check',
+    kind: 'note',
+    showWhen: multiPay,
+  },
+  {
+    key: 'growthRate',
+    label: 'The amount grows each year',
+    kind: 'percent',
+    value: 0.02,
+    step: 0.1,
+    min: -10,
+    max: 20,
+    source: 'From the carrier product sheet.',
+  },
+  {
+    key: 'growthStartsAtPaidUp',
+    label: 'The growth starts',
+    kind: 'choice',
+    value: false,
+    options: GROWTH_START_OPTIONS,
+    showWhen: multiPay,
+    source: 'From the carrier. On a 10-year plan, this choice can remove ten years of growth.',
+  },
+  {
+    key: 'benefitMode',
+    label: 'If the customer dies in the first years, the policy pays',
+    kind: 'choice',
+    value: 'fullFace',
+    options: BENEFIT_MODE_OPTIONS,
+    source: 'From the carrier product sheet. Pick one shape only. They cannot be mixed.',
+  },
+  {
+    key: 'waitingSchedule',
+    label: 'What it pays in each early year',
+    kind: 'percentRows',
+    value: [0.4, 0.7],
+    showWhen: graded,
+    source:
+      'From the carrier product sheet. Add one row for each year that pays a '
+      + 'part. The 40 and 70 values are placeholders. Replace them.',
+  },
+  {
+    key: 'waitingYears',
+    label: 'The money-back period lasts',
+    kind: 'years',
+    value: 2,
+    step: 1,
+    min: 0,
+    max: 10,
+    showWhen: moneyBack,
+    source: 'From the carrier product sheet.',
+  },
+  {
+    key: 'ropInterest',
+    label: 'Interest added to the money paid back',
+    kind: 'percent',
+    value: 0.07,
+    step: 0.5,
+    min: 0,
+    max: 30,
+    showWhen: moneyBack,
+    source: 'From the carrier product sheet. Usually 5% to 10%. It is applied once.',
+  },
+  {
+    id: 'full-amount-from',
+    kind: 'note',
+    showWhen: (c) => graded(c) || moneyBack(c),
+  },
+  /* ---- what you keep ---- */
+  {
+    key: 'firstYearCommission',
+    label: 'Commission on the first premium',
+    kind: 'percent',
+    value: 0.12,
+    step: 0.5,
+    min: 0,
+    max: 100,
+    group: 'What you keep',
+    source: 'From your carrier commission schedule.',
+  },
+  {
+    key: 'renewalCommission',
+    label: 'Commission on the later premiums',
+    kind: 'percent',
+    value: 0.03,
+    step: 0.5,
+    min: 0,
+    max: 100,
+    showWhen: multiPay,
+    source:
+      'From your carrier commission schedule. It equals the first-year rate on '
+      + 'an as-earned schedule, and is lower on a heaped schedule.',
+  },
+  {
+    key: 'businessTaxRate',
+    label: 'Your business income tax rate',
+    kind: 'percent',
+    value: 0.3,
+    step: 1,
+    min: 0,
+    max: 60,
+    source: 'From your accountant. The rate depends on how the business is organised.',
+  },
+  {
+    id: 'commission-growth',
+    kind: 'note',
   },
 ];
 
-/** Every field, in panel order. */
-export const FIELDS = PANELS.flatMap((panel) =>
-  panel.fields.map((field) => ({ ...field, panel: panel.id })));
+/**
+ * The insurance fields for contract `index`, as full-path fields.
+ * A `showWhen` written against one contract becomes one written against the
+ * whole input object, so the dashboard tests every field the same way.
+ */
+export function contractFields(index) {
+  const at = (values) => values.contracts[index];
+  return CONTRACT_FIELDS.map((field) => {
+    const out = {
+      ...field,
+      panel: `contract-${index}`,
+      contractIndex: index,
+    };
+    if (field.key) out.path = `contracts.${index}.${field.key}`;
+    if (field.id) out.id = `${field.id}-${index}`;
+    if (field.showWhen) out.showWhen = (values) => Boolean(at(values)) && field.showWhen(at(values));
+    else out.showWhen = (values) => Boolean(at(values));
+    return out;
+  });
+}
+
+/** The panel for contract `index`. */
+export function contractPanel(index, name) {
+  return {
+    id: `contract-${index}`,
+    index,
+    title: name,
+    lede: 'The policy terms, and the commission you keep.',
+    removable: true,
+    fields: contractFields(index),
+  };
+}
+
+/** Every panel, for a given input object: the two fixed ones, then a contract each. */
+export function panelsFor(values) {
+  return [
+    ...BASE_PANELS,
+    ...values.contracts.map((ins, index) => contractPanel(index, ins.name)),
+  ];
+}
+
+/** Every field, for a given input object, in panel order. */
+export function fieldsFor(values) {
+  return panelsFor(values).flatMap((panel) =>
+    panel.fields.map((field) => ({ panel: panel.id, ...field })));
+}
 
 /* ------------------------------------------------------------------ */
 /* Paths                                                               */
@@ -325,16 +388,104 @@ export function setPath(object, path, value) {
   return object;
 }
 
+/* ------------------------------------------------------------------ */
+/* Starting values                                                     */
+/* ------------------------------------------------------------------ */
+
+const copy = (value) => (Array.isArray(value) ? value.slice() : value);
+
+/** A fresh contract at the starting values, with the given id and name. */
+export function makeContract(id, name, patch = {}) {
+  const out = { id, name };
+  CONTRACT_FIELDS.filter((field) => field.key && field.key !== 'name')
+    .forEach((field) => { out[field.key] = copy(field.value); });
+  return Object.assign(out, patch);
+}
+
+/**
+ * The shapes a reader is most likely to want to line up against each other.
+ * "Add a contract" offers these, so a second contract is one click, not
+ * fourteen fields.
+ */
+export const CONTRACT_PRESETS = [
+  {
+    id: 'level',
+    label: 'Single pay, level',
+    blurb: 'Paid in full. It pays the full grown amount from year 1.',
+    patch: {},
+  },
+  {
+    id: 'tenPayGraded',
+    label: '10-pay, graded',
+    blurb: 'Ten premiums, a part of the amount in the early years, growth held to paid-up.',
+    patch: {
+      payments: 10,
+      annualPremium: 1055,
+      growthStartsAtPaidUp: true,
+      benefitMode: 'percentOfFace',
+      waitingSchedule: [0.4, 0.7],
+      waitingYears: 2,
+      firstYearCommission: 0.2,
+      renewalCommission: 0.02,
+    },
+  },
+  {
+    id: 'guaranteedIssue',
+    label: 'Guaranteed issue',
+    blurb: 'No underwriting. In the early years it returns the premiums paid, with interest.',
+    patch: {
+      benefitMode: 'returnOfPremium',
+      waitingYears: 2,
+      ropInterest: 0.07,
+      growthRate: 0.01,
+    },
+  },
+  {
+    id: 'threePay',
+    label: '3-pay, level',
+    blurb: 'Three premiums, the full amount from year 1, growth from the start.',
+    patch: {
+      payments: 3,
+      annualPremium: 3400,
+      firstYearCommission: 0.15,
+      renewalCommission: 0.05,
+    },
+  },
+];
+
 /** A fresh copy of the starting values. A note holds no value. */
 export function defaults() {
   const out = {};
-  FIELDS.filter((field) => field.path).forEach((field) => {
-    setPath(out, field.path, Array.isArray(field.value) ? field.value.slice() : field.value);
-  });
+  BASE_PANELS.flatMap((panel) => panel.fields)
+    .filter((field) => field.path)
+    .forEach((field) => { setPath(out, field.path, copy(field.value)); });
+  out.contracts = [makeContract('c1', 'Single pay, level')];
   return out;
+}
+
+/**
+ * A contract id that no current contract holds. The id is what a colour, a
+ * chart line and a saved answer are keyed on, so it must never be reused.
+ */
+export function nextContractId(contracts) {
+  const taken = new Set(contracts.map((c) => c.id));
+  for (let n = 1; n <= MAX_CONTRACTS * 4 + 1; n += 1) {
+    if (!taken.has(`c${n}`)) return `c${n}`;
+  }
+  return `c${Date.now()}`;
+}
+
+/** A name no current contract holds, built from the label the reader picked. */
+export function nextContractName(contracts, label) {
+  const taken = new Set(contracts.map((c) => c.name));
+  if (!taken.has(label)) return label;
+  for (let n = 2; n <= 99; n += 1) {
+    if (!taken.has(`${label} ${n}`)) return `${label} ${n}`;
+  }
+  return label;
 }
 
 /** The fields a given input object should show. */
 export function visibleFields(values) {
-  return FIELDS.filter((field) => !field.showWhen || field.showWhen(values));
+  return fieldsFor(values).filter((field) => !field.showWhen || field.showWhen(values));
 }
