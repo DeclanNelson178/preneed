@@ -1,7 +1,8 @@
 # Plan
 
-A static dashboard that compares **trust funding** against **insurance funding**
-for a Massachusetts cost-protected pre-need funeral contract.
+A static dashboard that compares **trust funding** against **any number of
+insurance contracts**, all against **funeral inflation**, for a Massachusetts
+cost-protected pre-need funeral contract.
 
 The user is a funeral director. He enters numbers he can pull from a statement,
 a price list, or a carrier illustration. He sees what each option is worth to
@@ -202,6 +203,9 @@ Three panels, so he never sees all of them at once.
 
 **Section 9 supersedes the panel 3 layout.** The fields are the same. How he
 answers them is not.
+
+**Section 11 supersedes the panel count.** Panel 3 is now one panel per
+insurance contract, stamped out from the same field list.
 
 Every value and its status is recorded in `docs/SOURCES.md`.
 
@@ -450,3 +454,93 @@ by 239 CMR 4.08.
    The model has always made them equal. The premium is now derived from that
    equality, so the assumption is on the screen instead of in the code.
    Question 10 in section 7 answers it.
+
+---
+
+## 11. The comparison, rebuilt
+
+Two options was the wrong shape. Once the trust return is above funeral
+inflation the trust covers the bill in every year and one insurance contract
+loses in every year, and the dashboard spends a whole screen saying so. That
+is arithmetic, not a finding. The question a funeral director actually has is
+which **of the contracts on his desk** to write, and against what.
+
+So the comparison now holds one trust and up to six insurance contracts, all
+priced against the same bill.
+
+### 11.1 One trust, a list of contracts
+
+`inputs.contracts` is the list. `inputs.insurance` is the first entry, by
+reference, so every caller that predates the list — and every test written
+against it — still reads the same object.
+
+Each policy function takes the contract it is about as its last argument, with
+the first contract as the default:
+
+```js
+deathBenefit(t, inputs)        // the first contract, as before
+deathBenefit(t, inputs, ins)   // the contract named
+```
+
+A row of the result carries `options`: the trust, then each contract, in draw
+order. Nothing downstream is written for two options.
+
+**Six is the limit, and it is a colour limit, not an arithmetic one.** The
+chart palette has one validated categorical slot for the trust and six for
+contracts. A seventh would need a hue that no longer separates under
+colour-blind simulation, so the list stops rather than repeating a colour. A
+contract takes its slot from its id, not from its place in the list, so
+removing the second of three never repaints the two that remain.
+
+### 11.2 The yearly winner
+
+`row.winner` names the option that leaves the most money in his hand that
+year. Every option faces the same bill in a given year, so ranking on the
+total and ranking on the margin give the same order.
+
+| Field | Meaning |
+|---|---|
+| `key`, `name` | the winner, or `'tie'` and every tied name |
+| `tie`, `tied` | whether the top is shared, and by whom |
+| `lead` | the distance to the next option strictly below the top |
+| `runnerUp` | that option |
+
+A gap under a cent is a tie. Two shapes that land on the same number are not a
+winner and a loser, and rounding must never invent one.
+
+`summary.runs` folds the thirty winners into contiguous runs. That is the
+comparison tool: a lead that changes hands twice is two entries, and a lead
+that never changes is one entry covering every year.
+
+### 11.3 What he sees
+
+| Piece | What it answers |
+|---|---|
+| The rail | one surplus/loss band per option, named in a gutter |
+| The cards | one card per option, the leader ringed and chipped |
+| The standings | every option ranked for the selected year: total, distance behind the leader, margin, effective rate, years ahead, first loss year |
+| Who wins each year | a run strip over a bar of the lead over the runner-up. Colour says who; height says by how much. A bar you can barely see is a coin toss |
+| Every year, side by side | one column band per option, plus the winner and the lead. Margins, totals, or everything |
+| How we made these numbers | one column for the bill, one for the trust, one for each contract |
+
+### 11.4 Adding a contract
+
+Four presets — single pay level, 10-pay graded, guaranteed issue, 3-pay level
+— so a second contract is one click rather than fourteen fields. A preset is a
+starting shape, not an answer; the panel it opens holds the carrier's own
+numbers. Duplicate copies a contract he has already filled in, which is the
+fast way to test one changed term.
+
+### 11.5 What changed in the files
+
+| File | Change |
+|---|---|
+| `src/model.js` | the contract list, per-contract policy functions, `winnerOf`, `winnerRuns`, `summary.byOption`, per-contract warnings |
+| `src/inputs.js` | `CONTRACT_FIELDS` stamped out per contract, `makeContract`, the presets, `panelsFor` |
+| `src/chart.js` | `winnerChart`, a rail that scales to seven bands, series-count-aware direct labels |
+| `src/app.js` | the seven-slot palette, dynamic panels, dynamic cards, the standings, the banded tables, the view switch, a v2 store that migrates v1 |
+| `index.html` | the validated palette, the winner figure, the standings block, the table bands |
+| `test/compare.test.js` | new. Twenty-one tests for the list and the yearly winner |
+| `test/golden.test.js` | re-pinned for the new `defaults()` and `summary` shape. Every projected number is unchanged |
+
+79 tests pass.

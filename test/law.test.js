@@ -122,11 +122,19 @@ test('239 CMR 4.08(6)(b) — the margin is the only settlement figure', () => {
 
 test('239 CMR 4.08(6)(a) and (b) — the same line computes surplus and loss', () => {
   // One formula, no branch. A sign change must not change the arithmetic.
+  // The contract line is written once and serves every contract in the list,
+  // so two computations still cover any number of options.
   const source = readFileSync(fileURLToPath(new URL('../src/model.js', import.meta.url)), 'utf8');
-  const marginLines = source.split('\n').filter((line) => /margin:/.test(line));
-  assert.equal(marginLines.length, 2, 'margin should be computed in exactly two places, once per option');
-  marginLines.forEach((line) => {
-    assert.ok(/total - cost|Total - cost/.test(line), `margin is not a plain difference: ${line}`);
+  const marginLines = source.split('\n').filter((line) => /^\s*margin: /.test(line));
+
+  const computed = marginLines.filter((line) => /total - cost|Total - cost/i.test(line));
+  assert.equal(computed.length, 2,
+    'margin should be computed in exactly two places: the trust, and one contract');
+
+  // Anything else that carries a margin must copy one of those two, never
+  // recompute it some other way.
+  marginLines.filter((line) => !computed.includes(line)).forEach((line) => {
+    assert.ok(/margin: \w+\.margin,/.test(line), `margin is not a plain difference: ${line}`);
   });
 });
 
@@ -141,5 +149,6 @@ test('the model covers funeral establishment charges only', () => {
   // 239 CMR 4.08(6)(c) and (d) are out of scope, so no cash advance figure exists.
   const result = project(inputs());
   const row = result.rows[0];
-  assert.deepEqual(Object.keys(row).sort(), ['cost', 'insurance', 'trust', 'year']);
+  assert.deepEqual(Object.keys(row).sort(),
+    ['contracts', 'cost', 'insurance', 'options', 'trust', 'winner', 'year']);
 });
