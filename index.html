@@ -338,9 +338,9 @@ a { color: inherit; }
   text-wrap: pretty;
 }
 
-.panel-body { padding: 4px 18px 18px; display: grid; gap: 18px; }
+.panel-body { padding: 4px 18px 20px; display: grid; gap: 22px; }
 
-.field { display: grid; gap: 6px; }
+.field { display: grid; gap: 10px; }
 
 .field-head {
   display: flex;
@@ -768,8 +768,11 @@ tbody tr[data-year] { cursor: pointer; }
 .panel-body > .group-head:first-child { border-top: 0; padding-top: 0; }
 
 /* --- a row of buttons. One answer. --- */
-.choice { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 8px; }
-.choice legend { padding: 0; font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
+.choice { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 10px; }
+/* A browser lifts the legend out of the fieldset box, so it is not a grid
+   item and the gap above never reaches it. State that space by hand, or the
+   question sits on top of the buttons. */
+.choice legend { padding: 0; margin-bottom: 10px; font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
 .choice-row { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .opt { position: relative; display: inline-flex; cursor: pointer; }
@@ -808,10 +811,12 @@ tbody tr[data-year] { cursor: pointer; }
 .choice-more > summary::before { content: '▸ '; }
 .choice-more[open] > summary::before { content: '▾ '; }
 .choice-more > summary:hover { color: var(--ink); }
-.choice-more .choice-row { padding: 4px 0; }
+/* A browser wraps the disclosed part of a details in a box of its own, so a
+   gap on the details never reaches inside it. Space these by hand. */
+.choice-more .choice-row { padding: 10px 0 0; }
+.choice-more .field-source { margin-top: 10px; }
 
 /* --- a line the page computes. You type none of these. --- */
-.field--note { gap: 4px; }
 .readout {
   font-size: 0.8125rem;
   line-height: 1.5;

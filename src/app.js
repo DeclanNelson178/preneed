@@ -425,7 +425,7 @@ function buildNumber(field, wrapper, id) {
 function buildField(field, onChange) {
   const key = field.path || field.id;
   const id = `f-${key.replace(/\./g, '-')}`;
-  const wrapper = el('div', { class: field.kind === 'note' ? 'field field--note' : 'field' });
+  const wrapper = el('div', { class: 'field' });
   wrapper.dataset.field = key;
 
   let parts;
